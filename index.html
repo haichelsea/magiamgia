@@ -10,31 +10,60 @@
         .orange-text { color: #ee4d2d; font-weight: bold; }
         .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; line-height: 1.5; }
         .status-msg { font-size: 14px; color: #666; margin-top: 10px; font-style: italic; }
+        
+        .btn-open-app {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 16px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #ee4d2d;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
 
     <div class="loading-box">
         <h3 class="orange-text">🔄 ĐANG KÍCH HOẠT VOUCHER FACEBOOK...</h3>
-        <p class="status-msg" id="status-text">Đang đồng bộ ID Affiliate và chiến dịch nguồn Facebook...</p>
+        <p class="status-msg" id="status-text">Đang phân tích liên kết sản phẩm gốc...</p>
     </div>
 
+    <button class="btn-open-app" id="fallback-btn" onclick="forceOpenApp()">
+        🛍️ BẤM VÀO ĐÂY ĐỂ MỞ APP SHOPEE NGAY
+    </button>
+
     <div class="instruction-card">
-        💡 <b>MẸO NHỎ KÍCH HOẠT:</b><br>
-        Nếu App Shopee không tự bật lên, vui lòng <b>vuốt nhẹ màn hình xuống</b> hoặc <b>chạm vào bất kỳ vị trí nào</b> để mở ứng dụng và nhận Voucher ngay!
+        💡 <b>MẸO KÍCH HOẠT VOUCHER:</b><br>
+        Hệ thống đang điều hướng an toàn sang ứng dụng Shopee. Nếu không tự động chuyển hướng, hãy <b>Bấm nút màu cam</b> để mở App nhận Voucher Facebook!
     </div>
 
     <script>
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
+        let finalRedirectUrl = "";
+
+        function getQueryParamAdvanced(param) {
+            // Bộ lọc nâng cao bóc tách tham số chính xác bất chấp ký tự đặc biệt nhiễu
+            const url = window.location.href;
+            const regex = new RegExp('[?&]' + param + '=([^&#]*)', 'i');
+            const string = regex.exec(url);
+            return string ? decodeURIComponent(string[1]) : null;
         }
 
-        // Nhận liên kết Shopee đích được truyền từ Bot Zalo (đã mã hóa)
-        const targetUrl = getQueryParam('target');
+        // Lấy link đích từ Bot gửi sang
+        const targetUrl = getQueryParamAdvanced('target');
 
-        // Cấu trúc chuỗi Tracking Facebook SIÊU NGHIÊM NGẶT đạt chuẩn Whitelist của Shopee
-        // Bắt buộc chứa tiền tố --fbcontent_ và tham số fbclid tách riêng để nhận diện nguồn Facebook 100%
+        // Chuỗi tham số chuẩn nguồn Facebook để kích hoạt lọc mã
         const strictFbTracking = "utm_source=an_17350640509&utm_medium=affiliates&utm_campaign=--fbcontent_zalo_automation_2026&utm_content=fb_voucher_KOL_activation_YT3&fbclid=IwAR_VoucherFB_GiaiMaTuDong_PlaywrightBotZalo";
 
         if (targetUrl) {
@@ -42,40 +71,48 @@
             const cleanTarget = targetUrl.trim();
 
             // =================================================================
-            // TRƯỜNG HỢP 1: LINK RÚT GỌN (s.shopee.vn, vn.shp.ee, shope.ee)
+            // LUỒNG 1: XỬ LÝ LINK NGẮN (s.shopee.vn, vn.shp.ee, shope.ee)
             // =================================================================
             if (cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee")) {
-                // Tách bỏ toàn bộ query param cũ của link ngắn (nếu có)
                 const baseShortUrl = cleanTarget.split("?")[0];
-                
-                // Kỹ thuật bọc: Nhét cả link ngắn lẫn param Facebook mới vào trong cổng universal-link chính thức
-                // Khi App mở ra, nó giải mã link ngắn đồng thời gộp luôn Session Facebook này vào
                 finalLinkToOpen = "https://shopee.vn/universal-link/?url=" + encodeURIComponent(baseShortUrl + "?" + strictFbTracking);
             } 
             // =================================================================
-            // TRƯỜNG HỢP 2: LINK DÀI SẴN (shopee.vn/product/... hoặc chứa -i.shopId.itemId)
+            // LUỒNG 2: XỬ LÝ LINK DÀI (Phân tích bóc tách ID động)
             // =================================================================
             else {
-                // Khởi tạo ID mặc định phòng trường hợp Regex lỗi
-                let shopId = "937505952"; 
-                let itemId = "22036174280";
+                let shopId = "";
+                let itemId = "";
 
-                // Regex bóc tách sạch sẽ Shop ID và Item ID bất chấp các tham số rác (gads_t_sig, utm_content=----)
-                const regex1 = /\/product\/(\d+)\/(\d+)/;
-                const regex2 = /-i\.(\d+)\.(\d+)/;
-                let match = cleanTarget.match(regex1) || cleanTarget.match(regex2);
-
-                if (match && match[1] && match[2]) {
-                    shopId = match[1];
-                    itemId = match[2];
+                // Giải thuật 1: Quét cấu trúc /product/shopId/itemId
+                const regexProduct = /\/product\/(\d+)\/(\d+)/;
+                let matchProduct = cleanTarget.match(regexProduct);
+                
+                if (matchProduct) {
+                    shopId = matchProduct[1];
+                    itemId = matchProduct[2];
+                } else {
+                    // Giải thuật 2: Quét cấu trúc đuôi -i.shopId.itemId (Cấu trúc chia sẻ phổ biến)
+                    const regexDashI = /-i\.(\d+)\.(\d+)/;
+                    let matchDashI = cleanTarget.match(regexDashI);
+                    if (matchDashI) {
+                        shopId = matchDashI[1];
+                        itemId = matchDashI[2];
+                    }
                 }
 
-                // Dựng lại cấu trúc Universal Link dài nguyên bản và gộp chuỗi tracking Facebook mới vào
-                finalLinkToOpen = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?" + strictFbTracking;
+                // NẾU TRÍCH XUẤT THÀNH CÔNG: Dựng link theo định dạng chuẩn Universal sạch sẽ
+                if (shopId && itemId) {
+                    finalLinkToOpen = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?" + strictFbTracking;
+                } else {
+                    // NẾU THẤT BẠI (Link dạng đặc biệt khác): Giữ nguyên link gốc của khách, chỉ đập đè tham số tracking Facebook vào sau
+                    const baseLongUrl = cleanTarget.split("?")[0];
+                    finalLinkToOpen = baseLongUrl + "?" + strictFbTracking;
+                }
             }
 
             // =================================================================
-            // ĐIỀU HƯỚNG MỞ APP (XỬ LÝ ĐỊNH DẠNG INTENT CHỐNG LẶP DOMAIN TRÊN ANDROID)
+            // XỬ LÝ CẤU TRÚC INTENT CHO ANDROID (ĐÚNG ĐƯỜNG DẪN ĐỘNG)
             // =================================================================
             let cleanPath = finalLinkToOpen
                 .replace("https://shopee.vn/", "")
@@ -83,29 +120,30 @@
                 .replace("https://shope.ee/", "")
                 .replace("https://vn.shp.ee/", "");
 
-            // Cấu trúc Intent chuẩn bẻ gãy bộ lọc giữ chân của Zalo Webview trên Android
             const androidIntentLink = "intent://shopee.vn/" + cleanPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             
             const isAndroid = /Android/i.test(navigator.userAgent);
-            const finalRedirectUrl = isAndroid ? androidIntentLink : finalLinkToOpen;
+            finalRedirectUrl = isAndroid ? androidIntentLink : finalLinkToOpen;
 
-            document.getElementById("status-text").innerText = "🎉 Đồng bộ thành công! Đang chuyển hướng sang App Shopee...";
+            document.getElementById("status-text").innerText = "🎉 Đã đồng bộ sản phẩm! Đang mở ứng dụng...";
 
-            // Hàm kích hoạt lệnh chuyển hướng
-            function triggerRedirect() {
-                window.location.href = finalRedirectUrl;
+            function forceOpenApp() {
+                if (finalRedirectUrl) {
+                    window.location.href = finalRedirectUrl;
+                }
             }
+            window.forceOpenApp = forceOpenApp;
 
-            // Chạy tự động ngay khi trang vừa tải xong
-            triggerRedirect();
-
-            // Phá băng bộ lọc Zalo bằng cách lắng nghe tương tác vật lý (Vuốt/Chạm/Click) của người dùng
-            window.addEventListener('scroll', triggerRedirect, { passive: true });
-            document.addEventListener('touchstart', triggerRedirect, { passive: true });
-            document.addEventListener('click', triggerRedirect);
+            // Thực thi kích hoạt tự động + tương tác nền chống giữ chân
+            forceOpenApp();
+            window.addEventListener('scroll', forceOpenApp, { passive: true });
+            document.addEventListener('touchstart', forceOpenApp, { passive: true });
+            document.addEventListener('click', forceOpenApp);
+            setTimeout(forceOpenApp, 1200);
 
         } else {
-            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px; font-weight:bold;'>❌ Lỗi: Cấu trúc đường dẫn không hợp lệ hoặc thiếu tham số 'target'.</p>";
+            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Không thể phân tích dữ liệu sản phẩm này.</span>";
+            document.getElementById("fallback-btn").style.display = "none";
         }
     </script>
 </body>
