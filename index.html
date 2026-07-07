@@ -2,30 +2,78 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đang chuyển hướng ưu đãi...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kích Hoạt Ưu Đãi Đặc Quyền</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; text-align: center; color: #333; }
+        .loading-box { padding: 40px 20px; background: white; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .orange-text { color: #ee4d2d; font-weight: bold; }
+        .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; }
+    </style>
 </head>
 <body>
-    <p style="text-align: center; margin-top: 50px; font-family: Arial, sans-serif; color: #333;">
-        🔄 Đang kết nối dữ liệu Facebook Voucher và mở App Shopee, vui lòng chờ trong giây lát...
-    </p>
+
+    <div class="loading-box">
+        <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ FACEBOOK VOUCHER...</h3>
+        <p style="font-size: 14px; color: #666;">Vui lòng <span class="orange-text">Vuốt nhẹ màn hình xuống</span> để kích hoạt mở thẳng App Shopee và nhận ưu đãi!</p>
+    </div>
+
+    <div class="instruction-card">
+        💡 <b>Thông báo:</b> Hệ thống đang đồng bộ mã giảm giá trực tiếp vào tài khoản của bạn trên App Shopee.
+    </div>
 
     <script>
-        // Hàm lấy tham số từ URL chính xác
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
 
-        const targetUrl = getQueryParam('target');
+        // Lấy link sản phẩm gốc và voucher từ tham số truyền lên dạng text sạch
+        const productUrl = getQueryParam('url');
+        const voucherCode = getQueryParam('voucherCode') || 'METAPAR2JULD22300';
 
-        if (targetUrl) {
-            // Giải mã URL Shopee đích thực (chứa đầy đủ FB tracking + voucherCode)
-            const cleanDestination = decodeURIComponent(targetUrl);
+        if (productUrl) {
+            const cleanProductUrl = productUrl.split('?')[0];
             
-            // Lệnh tối cao: Bật thẳng App Shopee nhảy vào sản phẩm với nguyên vẹn tham số
-            window.location.href = cleanDestination;
+            // Cấu hình ID mặc định của chiến dịch gốc nếu không bóc được ID mới
+            let shopId = "803395891";
+            let itemId = "55051604280";
+
+            // TỰ ĐỘNG BÓC TÁCH SHOP ID VÀ ITEM ID TỪ LINK SẢN PHẨM KHÁCH GỬI
+            const regex1 = /\/product\/(\d+)\/(\d+)/;
+            const regex2 = /-i\.(\d+)\.(\d+)/;
+            let match = cleanProductUrl.match(regex1) || cleanProductUrl.match(regex2);
+            
+            if (match && match[1] && match[2]) {
+                shopId = match[1];
+                itemId = match[2];
+            }
+
+            // ĐOẠN MÃ TRACKING FB VOUCHER GỐC (Bảo toàn nguyên bản dấu ~ và dấu .)
+            const fbVoucherTracking = "credential_token=8wEwiDL7ZRpPGmoDXMwtWBhJaNQd8qsEBWLencs7HZ&uls_trackid=562ve0mb03uf&utm_campaign=--fbcontent_57FShPzMqbIV6XFnAAVKipIIJmS5COaFKj2..R0A4nrlVhIR8910Ul7tbiBqdecR4JRr9WbgydzKYSOAiIHureYC~0xDOgEv7F7DLrkBsrWYALeslcD5IfJeeX23cm2ESsKHfLlvwFjBko5VVsBtuld26t7vkqJIhGC2Yg76rKniImO27P1hSe0E9rehu.M9PYmj16rfSf.yKGULS10&utm_term=f6rjsmperkxx&utm_medium=affiliates&utm_content=YT3--zG-2_er8cW8M0Lq-9v4YkFXE23zWlrO6p-3Gx6U6eP5CmvzFvKTcizpWigJj0ni602DXy87Eq9p77dgRD5UKxhINzoOfjJbTrwIfHbyDbKR1RU9xpe8pdCOb1rthnBCBlbopbmBhnc&utm_source=an_17104820001";
+
+            // ĐÓNG GÓI THÀNH UNIVERSAL LINK ĐẶC CHỦNG CỦA SHOPEE
+            const finalShopeeLink = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?voucherCode=" + voucherCode + "&" + fbVoucherTracking;
+
+            // ĐÓNG GÓI CẤU TRÚC INTENT ÉP BUỘC BẬT APP CHO ANDROID
+            const shopeePath = finalShopeeLink.replace("https://shopee.vn/", "");
+            const androidIntentLink = "intent://shopee.vn/" + shopeePath + "#Intent;scheme=https;package=com.shopee.vn;end;";
+            
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const finalLinkToOpen = isAndroid ? androidIntentLink : finalShopeeLink;
+
+            function triggerOpenApp() {
+                window.location.href = finalLinkToOpen;
+            }
+
+            // Kích hoạt chuỗi sự kiện phá băng bộ lọc giữ chân của Zalo Webview
+            triggerOpenApp();
+            window.addEventListener('scroll', triggerOpenApp, { passive: true });
+            document.addEventListener('touchstart', triggerOpenApp, { passive: true });
+            document.addEventListener('click', triggerOpenApp);
+
         } else {
-            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Liên kết ưu đãi không hợp lệ.</p>";
+            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Link cấu trúc sản phẩm không hợp lệ.</p>";
         }
     </script>
 </body>
