@@ -1,4 +1,21 @@
-<script>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang chuyển hướng ưu đãi...</title>
+</head>
+<body>
+    <div style="text-align: center; margin-top: 60px; font-family: Arial, sans-serif; padding: 20px;">
+        <h3 style="color: #ee4d2d;">🔄 ĐANG KÍCH HOẠT VOUCHER VÀ MỞ APP SHOPEE...</h3>
+        <p style="color: #666; font-size: 14px;">Hệ thống đang điều hướng an toàn, vui lòng chờ trong giây lát.</p>
+        
+        <a id="fallback-btn" href="#" style="display: none; margin-top: 20px; padding: 12px 24px; background-color: #ee4d2d; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            BẤM VÀO ĐÂY ĐỂ MỞ APP
+        </a>
+    </div>
+
+   <script>
     function getQueryParam(param) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(param);
@@ -35,3 +52,5 @@
         document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Link không hợp lệ.</p>";
     }
 </script>
+</body>
+</html>
