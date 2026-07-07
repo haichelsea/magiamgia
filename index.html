@@ -2,84 +2,30 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kích Hoạt Ưu Đãi Xuất Sắc</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; text-align: center; color: #333; }
-        .loading-box { padding: 30px 20px; background: white; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .orange-text { color: #ee4d2d; font-weight: bold; }
-        .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; }
-        .fake-content { padding: 20px; color: #999; font-size: 13px; line-height: 2; background: #fff; margin-top: 20px; }
-    </style>
+    <title>Đang chuyển hướng ưu đãi...</title>
 </head>
 <body>
-
-    <div class="loading-box">
-        <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ FACEBOOK VOUCHER...</h3>
-        <p style="font-size: 14px; color: #666;">Vui lòng <span class="orange-text">Chạm màn hình hoặc Vuốt nhẹ xuống</span> để kích hoạt App Shopee ngay lập tức!</p>
-    </div>
-
-    <div class="instruction-card">
-        💡 <b>Mẹo nhỏ:</b> Nếu ứng dụng không tự bật, vui lòng vuốt màn hình lên/xuống để hệ thống nhận diện lệnh mở App tự động.
-    </div>
-
-    <div class="fake-content">
-        <p>🎁 Đang tải danh sách quà tặng kèm theo đơn hàng...</p>
-        <p>▼ Cuộn xuống để xem thêm thông tin chi tiết ▼</p>
-        <br><br><br><br><br><br>
-        <p>Đơn hàng của bạn đủ điều kiện áp dụng mã giảm giá <b>METAPAR2JULD22300</b></p>
-        <p>Chi dịch phân phối: Facebook Voucher Đặc Quyền</p>
-        <br><br><br><br><br><br>
-        <p>© Hệ thống phân phối voucher tự động haichelsea</p>
-    </div>
+    <p style="text-align: center; margin-top: 50px; font-family: Arial, sans-serif; color: #333;">
+        🔄 Đang kết nối dữ liệu Facebook Voucher và mở App Shopee, vui lòng chờ trong giây lát...
+    </p>
 
     <script>
+        // Hàm lấy tham số từ URL chính xác
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
 
-        const productUrl = getQueryParam('url');
-        const voucherCode = getQueryParam('voucherCode') || 'METAPAR2JULD22300';
+        const targetUrl = getQueryParam('target');
 
-        if (productUrl) {
-            const cleanProductUrl = productUrl.split('?')[0];
+        if (targetUrl) {
+            // Giải mã URL Shopee đích thực (chứa đầy đủ FB tracking + voucherCode)
+            const cleanDestination = decodeURIComponent(targetUrl);
             
-            // Giữ nguyên bản 100% định dạng Facebook Voucher (Có dấu ~ và dấu .)
-            const fbVoucherTracking = "utm_campaign=--fbcontent_57FShPzMqbIV6XFnAAVKipIIJmS5COaFKj2..R0A4nrlVhIR8910Ul7tbiBqdecR4JRr9WbgydzKYSOAiIHureYC~0xDOgEv7F7DLrkBsrWYALeslcD5IfJeeX23cm2ESsKHfLlvwFjBko5VVsBtuld26t7vkqJIhGC2Yg76rKniImO27P1hSe0E9rehu.M9PYmj16rfSf.yKGULS10&utm_term=f6rjsmperkxx&utm_medium=affiliates&utm_content=YT3--zG-2_er8cW8M0Lq-9v4YkFXE23zWlrO6p-3Gx6U6eP5CmvzFvKTcizpWigJj0ni602DXy87Eq9p77dgRD5UKxhINzoOfjJbTrwIfHbyDbKR1RU9xpe8pdCOb1rthnBCBlbopbmBhnc&utm_source=an_17104820001";
-            const queryParams = "?voucherCode=" + voucherCode + "&" + fbVoucherTracking;
-
-            // Xây dựng cấu trúc link đích
-            let targetAppLink = cleanProductUrl + queryParams;
-            if (cleanProductUrl.includes("shopee.vn") && !cleanProductUrl.includes("universal-link")) {
-                const match = cleanProductUrl.match(/-i\.(\d+)\.(\d+)/);
-                if (match && match[1] && match[2]) {
-                    targetAppLink = "https://shopee.vn/universal-link/product/" + match[1] + "/" + match[2] + "/" + queryParams;
-                }
-            }
-
-            const shopeePath = targetAppLink.replace("https://shopee.vn/", "");
-            const androidIntentLink = "intent://shopee.vn/" + shopeePath + "#Intent;scheme=https;package=com.shopee.vn;end;";
-            
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            const finalLinkToOpen = isAndroid ? androidIntentLink : targetAppLink;
-
-            // --- HÀM BẮT BUỘC KÍCH HOẠT MỞ APP ---
-            function triggerOpenApp() {
-                window.location.href = finalLinkToOpen;
-            }
-
-            // Thử chạy tự động lần 1 ngay khi vừa vào trang
-            triggerOpenApp();
-
-            // 🔥 PHÁ BĂNG ZALO: Nghe ngóng hành động Cuộn trang hoặc Chạm nhẹ của khách
-            // Chỉ cần khách chạm tay vào màn hình hoặc vuốt nhẹ, App Shopee sẽ bị kích hoạt mở văng lên ngay lập tức
-            window.addEventListener('scroll', triggerOpenApp, { passive: true });
-            document.addEventListener('touchstart', triggerOpenApp, { passive: true });
-            document.addEventListener('click', triggerOpenApp);
-
+            // Lệnh tối cao: Bật thẳng App Shopee nhảy vào sản phẩm với nguyên vẹn tham số
+            window.location.href = cleanDestination;
         } else {
-            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Link sản phẩm không hợp lệ.</p>";
+            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Liên kết ưu đãi không hợp lệ.</p>";
         }
     </script>
 </body>
