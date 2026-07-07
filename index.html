@@ -1,4 +1,28 @@
-<script>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kích Hoạt Ưu Đãi Đặc Quyền</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; text-align: center; color: #333; }
+        .loading-box { padding: 40px 20px; background: white; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .orange-text { color: #ee4d2d; font-weight: bold; }
+        .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="loading-box">
+        <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ FACEBOOK VOUCHER...</h3>
+        <p style="font-size: 14px; color: #666;">Vui lòng <span class="orange-text">Vuốt nhẹ màn hình xuống</span> để kích hoạt mở thẳng App Shopee và nhận ưu đãi!</p>
+    </div>
+
+    <div class="instruction-card">
+        💡 <b>Thông báo:</b> Hệ thống đang đồng bộ mã giảm giá trực tiếp vào tài khoản của bạn trên App Shopee.
+    </div>
+
+    <script>
     function getQueryParam(param) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(param);
@@ -39,3 +63,5 @@
         document.addEventListener('click', triggerOpenApp);
     }
 </script>
+</body>
+</html>
