@@ -2,30 +2,67 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đang chuyển hướng ưu đãi...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyển Hướng Ưu Đãi Shopee</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; text-align: center; color: #333; }
+        .loading-box { padding: 40px 20px; background: white; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .orange-text { color: #ee4d2d; font-weight: bold; }
+        .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; }
+    </style>
 </head>
 <body>
-    <p style="text-align: center; margin-top: 50px; font-family: Arial, sans-serif; color: #333;">
-        🔄 Đang kết nối dữ liệu Facebook Voucher và mở App Shopee, vui lòng chờ trong giây lát...
-    </p>
+
+    <div class="loading-box">
+        <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ ƯU ĐÃI AFFILIATE...</h3>
+        <p style="font-size: 14px; color: #666;">Vui lòng <span class="orange-text">Vuốt nhẹ màn hình xuống</span> hoặc chạm vào màn hình để mở App Shopee ngay!</p>
+    </div>
+
+    <div class="instruction-card">
+        💡 <b>Thông báo:</b> Link tiếp thị liên kết nguồn Facebook đang được nạp trực tiếp vào tài khoản Shopee của bạn để tự động áp dụng các Voucher phân phối độc quyền.
+    </div>
 
     <script>
-        // Hàm lấy tham số từ URL chính xác
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
 
+        // Lấy đường dẫn Shopee đích đã được gộp tracking đầy đủ từ Bot Python
         const targetUrl = getQueryParam('target');
 
         if (targetUrl) {
-            // Giải mã URL Shopee đích thực (chứa đầy đủ FB tracking + voucherCode)
-            const cleanDestination = decodeURIComponent(targetUrl);
+            let finalLinkToOpen = targetUrl;
+
+            // Xử lý Universal Link tối ưu dựa trên cấu trúc link rút gọn hay link dài
+            if (targetUrl.includes("shp.ee") || targetUrl.includes("shope.ee")) {
+                // Nếu là link ngắn, bọc bằng cổng universal-link của Shopee để App tự giải mã client-side
+                finalLinkToOpen = "https://shopee.vn/universal-link/?url=" + encodeURIComponent(targetUrl);
+            } else if (targetUrl.includes("shopee.vn")) {
+                // Nếu đã là link dài, chuyển đổi trực tiếp cấu trúc sang dạng Universal Link mở App trực tiếp
+                const cleanPath = targetUrl.replace("https://shopee.vn/", "");
+                finalLinkToOpen = "https://shopee.vn/universal-link/" + cleanPath;
+            }
+
+            // XỬ LÝ ĐỊNH DẠNG INTENT CHỐNG KẸT WEBVIEW TRÊN ANDROID
+            const shopeePath = finalLinkToOpen.replace("https://shopee.vn/", "");
+            const androidIntentLink = "intent://shopee.vn/" + shopeePath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             
-            // Lệnh tối cao: Bật thẳng App Shopee nhảy vào sản phẩm với nguyên vẹn tham số
-            window.location.href = cleanDestination;
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const finalRedirectUrl = isAndroid ? androidIntentLink : finalLinkToOpen;
+
+            function trigger() {
+                window.location.href = finalRedirectUrl;
+            }
+
+            // Thực thi kích hoạt chuỗi sự kiện mở App tự động khi có tương tác vật lý (Chống Zalo giữ chân)
+            trigger();
+            window.addEventListener('scroll', trigger, { passive: true });
+            document.addEventListener('touchstart', trigger, { passive: true });
+            document.addEventListener('click', trigger);
+
         } else {
-            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Liên kết ưu đãi không hợp lệ.</p>";
+            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Cấu trúc đường dẫn không hợp lệ.</p>";
         }
     </script>
 </body>
