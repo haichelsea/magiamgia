@@ -36,8 +36,8 @@
 <body>
 
     <div class="loading-box">
-        <h3 class="orange-text">🔄 ĐANG MỞ LINK SẢN PHẨM...</h3>
-        <p class="status-msg" id="status-text">Đang đồng bộ luồng điều hướng App Shopee...</p>
+        <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ CHIẾN DỊCH FACEBOOK...</h3>
+        <p class="status-msg" id="status-text">Đang phân tích dữ liệu sản phẩm điều hướng...</p>
     </div>
 
     <button class="btn-open-app" id="fallback-btn" onclick="forceOpenApp()">
@@ -45,8 +45,8 @@
     </button>
 
     <div class="instruction-card">
-        💡 <b>MẸO TRÁNH KẸT:</b><br>
-        Nếu ứng dụng Shopee dừng lại ở trang chủ, bạn hãy quay lại Zalo và <b>bấm vào link một lần nữa</b>, hoặc bấm trực tiếp vào <b>nút màu cam</b> ở trên để kích hoạt lại!
+        💡 <b>MẸO KÍCH HOẠT VOUCHER:</b><br>
+        Hệ thống đang bẻ khóa bộ lọc Zalo để mở thẳng ứng dụng Shopee. Nếu trang không tự chuyển hướng, bạn hãy <b>Bấm vào nút màu cam phía trên</b> hoặc <b>vuốt màn hình xuống</b> để nhận diện Voucher Facebook nhé!
     </div>
 
     <script>
@@ -59,27 +59,22 @@
             return string ? decodeURIComponent(string[1]) : null;
         }
 
-        // Lấy link đích từ Bot gửi sang
+        // Đọc link target chứa tracking Facebook do Bot Python gửi sang
         const targetUrl = getQueryParamAdvanced('target');
-
-        // Chuỗi tracking Facebook nghiêm ngặt bắt buộc
-        const strictFbTracking = "utm_source=an_17350640509&utm_medium=affiliates&utm_campaign=--fbcontent_zalo_automation_2026&utm_content=fb_voucher_KOL_activation_YT3&fbclid=IwAR_VoucherFB_GiaiMaTuDong_PlaywrightBotZalo";
 
         if (targetUrl) {
             const cleanTarget = targetUrl.trim();
             let isShortLink = cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee");
 
             // =================================================================
-            // LUỒNG 1: XỬ LÝ LINK NGẮN (Ví dụ: s.shopee.vn/2qSnA1JBMH)
+            // LUỒNG 1: XỬ LÝ LINK NGẮN (s.shopee.vn, vn.shp.ee)
             // =================================================================
             if (isShortLink) {
-                const baseShortUrl = cleanTarget.split("?")[0];
-                // KHÔNG DÙNG CỔNG UNIVERSAL LINK THÔ NỮA -> Dùng thẳng định dạng URL trực tiếp
-                // App Shopee tự nhận diện domain s.shopee.vn để bóc tách bên trong thiết bị
-                finalRedirectUrl = baseShortUrl + "?" + strictFbTracking;
+                // Giữ nguyên toàn bộ link ngắn kèm cụm param Facebook từ bot để App tự giải mã
+                finalRedirectUrl = cleanTarget;
             } 
             // =================================================================
-            // LUỒNG 2: XỬ LÝ LINK DÀI (Chuyển sang cấu trúc path an toàn)
+            // LUỒNG 2: XỬ LÝ LINK DÀI (Trích xuất ID động và dựng cấu trúc path an toàn)
             // =================================================================
             else {
                 let shopId = "";
@@ -92,32 +87,35 @@
                 if (match && match[1] && match[2]) {
                     shopId = match[1];
                     itemId = match[2];
-                    // Dựng cấu trúc link dài Universal của Shopee
-                    finalRedirectUrl = "https://shopee.vn/universal-link/product/" + shopId + "/" + itemId + "?" + strictFbTracking;
+                    
+                    // Tách lấy cụm tracking Facebook từ link target để ghép vào link cấu trúc mới
+                    let queryString = cleanTarget.split("?")[1] || "";
+                    
+                    // Dựng cấu trúc link Universal chuẩn xác trường tồn của Shopee
+                    finalRedirectUrl = "https://shopee.vn/universal-link/product/" + shopId + "/" + itemId + (queryString ? "?" + queryString : "");
                 } else {
-                    const baseLongUrl = cleanTarget.split("?")[0];
-                    finalRedirectUrl = baseLongUrl + "?" + strictFbTracking;
+                    // Nếu không bóc được ID, giữ nguyên link target của Bot làm cổng điều hướng dự phòng
+                    finalRedirectUrl = cleanTarget;
                 }
             }
 
             // =================================================================
-            // THIẾT LẬP CẤU TRÚC ĐIỀU HƯỚNG THEO HỆ ĐIỀU HÀNH
+            // THIẾT LẬP CẤU TRÚC INTENT CHO ĐIỆN THOẠI ANDROID (CHỐNG TRÙNG LẶP PROTOCOL)
             // =================================================================
             const isAndroid = /Android/i.test(navigator.userAgent);
             
             if (isAndroid) {
-                // Xử lý chuẩn chuỗi Intent cho Android để KHÔNG BỊ VĂNG TRANG CHỦ
                 let intentPath = finalRedirectUrl
                     .replace("https://shopee.vn/", "")
                     .replace("https://s.shopee.vn/", "")
                     .replace("https://shope.ee/", "")
                     .replace("https://vn.shp.ee/", "");
                 
-                // Ép cấu trúc Intent chạy qua giao thức host shopee.vn sạch
+                // Ép về cấu trúc gỡ chặn Webview Zalo, cam kết không bị lỗi lặp chữ shopee.vn
                 finalRedirectUrl = "intent://shopee.vn/" + intentPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             }
 
-            document.getElementById("status-text").innerText = "🎉 Đã xác thực sản phẩm! Đang chuyển hướng...";
+            document.getElementById("status-text").innerText = "🎉 Xác thực nguồn Facebook thành công! Đang mở App...";
 
             function forceOpenApp() {
                 if (finalRedirectUrl) {
@@ -126,17 +124,17 @@
             }
             window.forceOpenApp = forceOpenApp;
 
-            // Kích hoạt chuỗi mở app tự động đa tầng
+            // Kích hoạt chuỗi hành động đa tầng mở App ngay lập tức
             forceOpenApp();
             window.addEventListener('scroll', forceOpenApp, { passive: true });
             document.addEventListener('touchstart', forceOpenApp, { passive: true });
             document.addEventListener('click', forceOpenApp);
             
-            // Giảm độ trễ setTimeout xuống 800ms để chạy nhanh hơn trước khi Webview bị Zalo lock hẳn
+            // Tự động kích hoạt lại sau 800ms nếu Webview bị khựng
             setTimeout(forceOpenApp, 800);
 
         } else {
-            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Cấu trúc đường dẫn không hợp lệ.</span>";
+            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Cấu trúc đường dẫn không hợp lệ hoặc thiếu dữ liệu target.</span>";
             document.getElementById("fallback-btn").style.display = "none";
         }
     </script>
