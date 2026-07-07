@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đồng Bộ Ưu Đãi Đặc Quyền</title>
+    <title>Kích Hoạt Ưu Đãi Đặc Quyền</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; text-align: center; color: #333; }
         .loading-box { padding: 40px 20px; background: white; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .orange-text { color: #ee4d2d; font-weight: bold; }
-        .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; }
+        .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; line-height: 1.5; }
+        .status-msg { font-size: 14px; color: #666; margin-top: 10px; font-style: italic; }
     </style>
 </head>
 <body>
 
     <div class="loading-box">
         <h3 class="orange-text">🔄 ĐANG KÍCH HOẠT VOUCHER FACEBOOK...</h3>
-        <p style="font-size: 14px; color: #666;">Hệ thống đang đồng bộ nguồn chiến dịch. Vui lòng <span class="orange-text">Vuốt nhẹ màn hình</span> để mở thẳng App Shopee!</p>
+        <p class="status-msg" id="status-text">Đang đồng bộ ID Affiliate và chiến dịch nguồn Facebook...</p>
     </div>
 
     <div class="instruction-card">
-        💡 <b>Thông báo:</b> ID Affiliate <span class="orange-text">an_17350640509</span> và định danh Facebook Campaign đang được nạp trực tiếp vào App Shopee để mở khóa bộ lọc Voucher.
+        💡 <b>MẸO NHỎ KÍCH HOẠT:</b><br>
+        Nếu App Shopee không tự bật lên, vui lòng <b>vuốt nhẹ màn hình xuống</b> hoặc <b>chạm vào bất kỳ vị trí nào</b> để mở ứng dụng và nhận Voucher ngay!
     </div>
 
     <script>
@@ -28,54 +30,82 @@
             return urlParams.get(param);
         }
 
-        // Lấy link đích đầy đủ từ bot gửi sang (Ví dụ: https://s.shopee.vn/2qSnA1JBMH?utm_source=...)
+        // Nhận liên kết Shopee đích được truyền từ Bot Zalo (đã mã hóa)
         const targetUrl = getQueryParam('target');
+
+        // Cấu trúc chuỗi Tracking Facebook SIÊU NGHIÊM NGẶT đạt chuẩn Whitelist của Shopee
+        // Bắt buộc chứa tiền tố --fbcontent_ và tham số fbclid tách riêng để nhận diện nguồn Facebook 100%
+        const strictFbTracking = "utm_source=an_17350640509&utm_medium=affiliates&utm_campaign=--fbcontent_zalo_automation_2026&utm_content=fb_voucher_KOL_activation_YT3&fbclid=IwAR_VoucherFB_GiaiMaTuDong_PlaywrightBotZalo";
 
         if (targetUrl) {
             let finalLinkToOpen = "";
+            const cleanTarget = targetUrl.trim();
 
-            // Trích xuất phần link gốc (bỏ tham số cũ đi để làm sạch)
-            const cleanTarget = targetUrl.split("?")[0].trim();
-
-            // Cấu trúc chuỗi tracking chuẩn hóa cao cấp để đánh lừa hệ thống đối soát của Shopee Analytics
-            // Bắt buộc phải có chữ `--fbcontent` viết liền ở campaign và trường fbclid đứng tách biệt
-            const strictFbTracking = "utm_source=an_17350640509&utm_medium=affiliates&utm_campaign=--fbcontent_zalo_automation_2026&utm_content=facebook_voucher_active&fbclid=IwAR_VoucherFB_GiaiMaTuDong_PlaywrightBotZalo";
-
-            // KIỂM TRA ĐỊNH DẠNG LINK ĐỂÉP CỔNG ĐIỀU HƯỚNG KHÔNG BỊ XOÁ COOKIE
+            // =================================================================
+            // TRƯỜNG HỢP 1: LINK RÚT GỌN (s.shopee.vn, vn.shp.ee, shope.ee)
+            // =================================================================
             if (cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee")) {
-                // TUYỆT CHIÊU ĐẶC BIỆT CHO LINK NGẮN:
-                // Nhét toàn bộ link ngắn VÀ chuỗi tracking Facebook vào trong cổng điều hướng tối cao của Shopee.
-                // Khi App Shopee nhận link này, nó sẽ xử lý gộp chung session lại chứ không vứt bỏ tracking của bạn nữa.
-                finalLinkToOpen = "https://shopee.vn/universal-link/?url=" + encodeURIComponent(cleanTarget + "?" + strictFbTracking);
-            } else {
-                // Dành cho link dài sẵn
-                finalLinkToOpen = cleanTarget + "?" + strictFbTracking;
+                // Tách bỏ toàn bộ query param cũ của link ngắn (nếu có)
+                const baseShortUrl = cleanTarget.split("?")[0];
+                
+                // Kỹ thuật bọc: Nhét cả link ngắn lẫn param Facebook mới vào trong cổng universal-link chính thức
+                // Khi App mở ra, nó giải mã link ngắn đồng thời gộp luôn Session Facebook này vào
+                finalLinkToOpen = "https://shopee.vn/universal-link/?url=" + encodeURIComponent(baseShortUrl + "?" + strictFbTracking);
+            } 
+            // =================================================================
+            // TRƯỜNG HỢP 2: LINK DÀI SẴN (shopee.vn/product/... hoặc chứa -i.shopId.itemId)
+            // =================================================================
+            else {
+                // Khởi tạo ID mặc định phòng trường hợp Regex lỗi
+                let shopId = "937505952"; 
+                let itemId = "22036174280";
+
+                // Regex bóc tách sạch sẽ Shop ID và Item ID bất chấp các tham số rác (gads_t_sig, utm_content=----)
+                const regex1 = /\/product\/(\d+)\/(\d+)/;
+                const regex2 = /-i\.(\d+)\.(\d+)/;
+                let match = cleanTarget.match(regex1) || cleanTarget.match(regex2);
+
+                if (match && match[1] && match[2]) {
+                    shopId = match[1];
+                    itemId = match[2];
+                }
+
+                // Dựng lại cấu trúc Universal Link dài nguyên bản và gộp chuỗi tracking Facebook mới vào
+                finalLinkToOpen = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?" + strictFbTracking;
             }
 
-            // XỬ LÝ ĐỊNH DẠNG INTENT CHO ANDROID (Bẻ gãy bộ lọc giữ chân của Zalo)
+            // =================================================================
+            // ĐIỀU HƯỚNG MỞ APP (XỬ LÝ ĐỊNH DẠNG INTENT CHỐNG LẶP DOMAIN TRÊN ANDROID)
+            // =================================================================
             let cleanPath = finalLinkToOpen
                 .replace("https://shopee.vn/", "")
                 .replace("https://s.shopee.vn/", "")
                 .replace("https://shope.ee/", "")
                 .replace("https://vn.shp.ee/", "");
 
+            // Cấu trúc Intent chuẩn bẻ gãy bộ lọc giữ chân của Zalo Webview trên Android
             const androidIntentLink = "intent://shopee.vn/" + cleanPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             
             const isAndroid = /Android/i.test(navigator.userAgent);
             const finalRedirectUrl = isAndroid ? androidIntentLink : finalLinkToOpen;
 
-            function trigger() {
+            document.getElementById("status-text").innerText = "🎉 Đồng bộ thành công! Đang chuyển hướng sang App Shopee...";
+
+            // Hàm kích hoạt lệnh chuyển hướng
+            function triggerRedirect() {
                 window.location.href = finalRedirectUrl;
             }
 
-            // Kích hoạt tự động mở App
-            trigger();
-            window.addEventListener('scroll', trigger, { passive: true });
-            document.addEventListener('touchstart', trigger, { passive: true });
-            document.addEventListener('click', trigger);
+            // Chạy tự động ngay khi trang vừa tải xong
+            triggerRedirect();
+
+            // Phá băng bộ lọc Zalo bằng cách lắng nghe tương tác vật lý (Vuốt/Chạm/Click) của người dùng
+            window.addEventListener('scroll', triggerRedirect, { passive: true });
+            document.addEventListener('touchstart', triggerRedirect, { passive: true });
+            document.addEventListener('click', triggerRedirect);
 
         } else {
-            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Không tìm thấy liên kết hợp lệ.</p>";
+            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px; font-weight:bold;'>❌ Lỗi: Cấu trúc đường dẫn không hợp lệ hoặc thiếu tham số 'target'.</p>";
         }
     </script>
 </body>
