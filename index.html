@@ -36,24 +36,23 @@
 <body>
 
     <div class="loading-box">
-        <h3 class="orange-text">🔄 ĐANG KÍCH HOẠT VOUCHER FACEBOOK...</h3>
-        <p class="status-msg" id="status-text">Đang phân tích liên kết sản phẩm gốc...</p>
+        <h3 class="orange-text">🔄 ĐANG MỞ LINK SẢN PHẨM...</h3>
+        <p class="status-msg" id="status-text">Đang đồng bộ luồng điều hướng App Shopee...</p>
     </div>
 
     <button class="btn-open-app" id="fallback-btn" onclick="forceOpenApp()">
-        🛍️ BẤM VÀO ĐÂY ĐỂ MỞ APP SHOPEE NGAY
+        🛍️ BẤM VÀO ĐÂY ĐỂ MỞ SẢN PHẨM TRÊN APP
     </button>
 
     <div class="instruction-card">
-        💡 <b>MẸO KÍCH HOẠT VOUCHER:</b><br>
-        Hệ thống đang điều hướng an toàn sang ứng dụng Shopee. Nếu không tự động chuyển hướng, hãy <b>Bấm nút màu cam</b> để mở App nhận Voucher Facebook!
+        💡 <b>MẸO TRÁNH KẸT:</b><br>
+        Nếu ứng dụng Shopee dừng lại ở trang chủ, bạn hãy quay lại Zalo và <b>bấm vào link một lần nữa</b>, hoặc bấm trực tiếp vào <b>nút màu cam</b> ở trên để kích hoạt lại!
     </div>
 
     <script>
         let finalRedirectUrl = "";
 
         function getQueryParamAdvanced(param) {
-            // Bộ lọc nâng cao bóc tách tham số chính xác bất chấp ký tự đặc biệt nhiễu
             const url = window.location.href;
             const regex = new RegExp('[?&]' + param + '=([^&#]*)', 'i');
             const string = regex.exec(url);
@@ -63,69 +62,62 @@
         // Lấy link đích từ Bot gửi sang
         const targetUrl = getQueryParamAdvanced('target');
 
-        // Chuỗi tham số chuẩn nguồn Facebook để kích hoạt lọc mã
+        // Chuỗi tracking Facebook nghiêm ngặt bắt buộc
         const strictFbTracking = "utm_source=an_17350640509&utm_medium=affiliates&utm_campaign=--fbcontent_zalo_automation_2026&utm_content=fb_voucher_KOL_activation_YT3&fbclid=IwAR_VoucherFB_GiaiMaTuDong_PlaywrightBotZalo";
 
         if (targetUrl) {
-            let finalLinkToOpen = "";
             const cleanTarget = targetUrl.trim();
+            let isShortLink = cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee");
 
             // =================================================================
-            // LUỒNG 1: XỬ LÝ LINK NGẮN (s.shopee.vn, vn.shp.ee, shope.ee)
+            // LUỒNG 1: XỬ LÝ LINK NGẮN (Ví dụ: s.shopee.vn/2qSnA1JBMH)
             // =================================================================
-            if (cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee")) {
+            if (isShortLink) {
                 const baseShortUrl = cleanTarget.split("?")[0];
-                finalLinkToOpen = "https://shopee.vn/universal-link/?url=" + encodeURIComponent(baseShortUrl + "?" + strictFbTracking);
+                // KHÔNG DÙNG CỔNG UNIVERSAL LINK THÔ NỮA -> Dùng thẳng định dạng URL trực tiếp
+                // App Shopee tự nhận diện domain s.shopee.vn để bóc tách bên trong thiết bị
+                finalRedirectUrl = baseShortUrl + "?" + strictFbTracking;
             } 
             // =================================================================
-            // LUỒNG 2: XỬ LÝ LINK DÀI (Phân tích bóc tách ID động)
+            // LUỒNG 2: XỬ LÝ LINK DÀI (Chuyển sang cấu trúc path an toàn)
             // =================================================================
             else {
                 let shopId = "";
                 let itemId = "";
 
-                // Giải thuật 1: Quét cấu trúc /product/shopId/itemId
                 const regexProduct = /\/product\/(\d+)\/(\d+)/;
-                let matchProduct = cleanTarget.match(regexProduct);
+                const regexDashI = /-i\.(\d+)\.(\d+)/;
+                let match = cleanTarget.match(regexProduct) || cleanTarget.match(regexDashI);
                 
-                if (matchProduct) {
-                    shopId = matchProduct[1];
-                    itemId = matchProduct[2];
+                if (match && match[1] && match[2]) {
+                    shopId = match[1];
+                    itemId = match[2];
+                    // Dựng cấu trúc link dài Universal của Shopee
+                    finalRedirectUrl = "https://shopee.vn/universal-link/product/" + shopId + "/" + itemId + "?" + strictFbTracking;
                 } else {
-                    // Giải thuật 2: Quét cấu trúc đuôi -i.shopId.itemId (Cấu trúc chia sẻ phổ biến)
-                    const regexDashI = /-i\.(\d+)\.(\d+)/;
-                    let matchDashI = cleanTarget.match(regexDashI);
-                    if (matchDashI) {
-                        shopId = matchDashI[1];
-                        itemId = matchDashI[2];
-                    }
-                }
-
-                // NẾU TRÍCH XUẤT THÀNH CÔNG: Dựng link theo định dạng chuẩn Universal sạch sẽ
-                if (shopId && itemId) {
-                    finalLinkToOpen = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?" + strictFbTracking;
-                } else {
-                    // NẾU THẤT BẠI (Link dạng đặc biệt khác): Giữ nguyên link gốc của khách, chỉ đập đè tham số tracking Facebook vào sau
                     const baseLongUrl = cleanTarget.split("?")[0];
-                    finalLinkToOpen = baseLongUrl + "?" + strictFbTracking;
+                    finalRedirectUrl = baseLongUrl + "?" + strictFbTracking;
                 }
             }
 
             // =================================================================
-            // XỬ LÝ CẤU TRÚC INTENT CHO ANDROID (ĐÚNG ĐƯỜNG DẪN ĐỘNG)
+            // THIẾT LẬP CẤU TRÚC ĐIỀU HƯỚNG THEO HỆ ĐIỀU HÀNH
             // =================================================================
-            let cleanPath = finalLinkToOpen
-                .replace("https://shopee.vn/", "")
-                .replace("https://s.shopee.vn/", "")
-                .replace("https://shope.ee/", "")
-                .replace("https://vn.shp.ee/", "");
-
-            const androidIntentLink = "intent://shopee.vn/" + cleanPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
-            
             const isAndroid = /Android/i.test(navigator.userAgent);
-            finalRedirectUrl = isAndroid ? androidIntentLink : finalLinkToOpen;
+            
+            if (isAndroid) {
+                // Xử lý chuẩn chuỗi Intent cho Android để KHÔNG BỊ VĂNG TRANG CHỦ
+                let intentPath = finalRedirectUrl
+                    .replace("https://shopee.vn/", "")
+                    .replace("https://s.shopee.vn/", "")
+                    .replace("https://shope.ee/", "")
+                    .replace("https://vn.shp.ee/", "");
+                
+                // Ép cấu trúc Intent chạy qua giao thức host shopee.vn sạch
+                finalRedirectUrl = "intent://shopee.vn/" + intentPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
+            }
 
-            document.getElementById("status-text").innerText = "🎉 Đã đồng bộ sản phẩm! Đang mở ứng dụng...";
+            document.getElementById("status-text").innerText = "🎉 Đã xác thực sản phẩm! Đang chuyển hướng...";
 
             function forceOpenApp() {
                 if (finalRedirectUrl) {
@@ -134,15 +126,17 @@
             }
             window.forceOpenApp = forceOpenApp;
 
-            // Thực thi kích hoạt tự động + tương tác nền chống giữ chân
+            // Kích hoạt chuỗi mở app tự động đa tầng
             forceOpenApp();
             window.addEventListener('scroll', forceOpenApp, { passive: true });
             document.addEventListener('touchstart', forceOpenApp, { passive: true });
             document.addEventListener('click', forceOpenApp);
-            setTimeout(forceOpenApp, 1200);
+            
+            // Giảm độ trễ setTimeout xuống 800ms để chạy nhanh hơn trước khi Webview bị Zalo lock hẳn
+            setTimeout(forceOpenApp, 800);
 
         } else {
-            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Không thể phân tích dữ liệu sản phẩm này.</span>";
+            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Cấu trúc đường dẫn không hợp lệ.</span>";
             document.getElementById("fallback-btn").style.display = "none";
         }
     </script>
