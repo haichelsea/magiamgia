@@ -2,37 +2,30 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đang chuyển hướng...</title>
+    <title>Đang chuyển hướng ưu đãi...</title>
 </head>
 <body>
-    <p style="text-align: center; margin-top: 50px; font-family: Arial, sans-serif;">
-        🔄 Đang tự động kích hoạt mã giảm giá và mở App Shopee, vui lòng chờ trong giây lát...
+    <p style="text-align: center; margin-top: 50px; font-family: Arial, sans-serif; color: #333;">
+        🔄 Đang kết nối dữ liệu Facebook Voucher và mở App Shopee, vui lòng chờ trong giây lát...
     </p>
 
     <script>
+        // Hàm lấy tham số từ URL chính xác
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
 
-        // Lấy link từ tham số Bot gửi sang
-        const maLink = getQueryParam('ma_link');
-        const spLink = getQueryParam('sp_link');
+        const targetUrl = getQueryParam('target');
 
-        if (maLink && spLink) {
-            // Giải mã tầng mã hóa an toàn để trả về link goeco.mobi chuẩn
-            const cleanMaLink = decodeURIComponent(maLink);
-            const cleanSpLink = decodeURIComponent(spLink);
-
-            // Bước 1: Điều hướng sang link Voucher để tự động lưu mã vào ví Shopee trước
-            window.location.href = cleanMaLink;
-
-            // Bước 2: Chờ 1 khoảng ngắn (1 giây) để App kích hoạt ví xong thì chuyển hướng sang trang sản phẩm
-            setTimeout(function() {
-                window.location.href = cleanSpLink;
-            }, 1000);
+        if (targetUrl) {
+            // Giải mã URL Shopee đích thực (chứa đầy đủ FB tracking + voucherCode)
+            const cleanDestination = decodeURIComponent(targetUrl);
+            
+            // Lệnh tối cao: Bật thẳng App Shopee nhảy vào sản phẩm với nguyên vẹn tham số
+            window.location.href = cleanDestination;
         } else {
-            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Không tìm thấy liên kết sản phẩm hợp lệ.</p>";
+            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Liên kết ưu đãi không hợp lệ.</p>";
         }
     </script>
 </body>
