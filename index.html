@@ -29,13 +29,18 @@
 <body>
 
     <div class="loading-box">
-        <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ CHIẾN DỊCH FACEBOOK...</h3>
-        <p id="status-text">Đang thiết lập cổng liên kết an toàn...</p>
+        <h3 class="orange-text">🔄 ĐANG ĐIỀU HƯỚNG ĐẾN SẢN PHẨM...</h3>
+        <p id="status-text">Đang đồng bộ luồng dữ liệu Facebook Campaign...</p>
     </div>
 
     <button class="btn-open-app" id="fallback-btn" onclick="forceOpenApp()">
-        🛍️ BẤM VÀO ĐÂY ĐỂ MỞ APP SHOPEE NGAY
+        🛍️ BẤM VÀO ĐÂY ĐỂ MỞ SẢN PHẨM TRÊN APP
     </button>
+
+    <div class="instruction-card">
+        💡 <b>MẸO KÍCH HOẠT:</b><br>
+        Hệ thống đang tự động mở thẳng trang sản phẩm trên App Shopee. Nếu bị khựng lại ở trang chủ, bạn hãy nhấn vào <b>Nút màu cam ở trên</b> để ép hệ thống nhảy thẳng vào sản phẩm!
+    </div>
 
     <script>
         let finalRedirectUrl = "";
@@ -47,26 +52,50 @@
             return string ? decodeURIComponent(string[1]) : null;
         }
 
-        // Nhận liên kết target thô từ Bot gửi sang
+        // Đọc link target đã được Bot Python mã hóa sẵn
         const targetUrl = getQueryParamAdvanced('target');
 
         if (targetUrl) {
+            // Giải mã link target một lần để đưa về dạng link thuần chuẩn (Xóa bỏ Double Encoding)
             const cleanTarget = targetUrl.trim();
             
-            // KIỂM TRA: Nếu là link ngắn (shp.ee, shope.ee, vn.shp.ee)
-            if (cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee")) {
-                // TUYỆT CHIÊU BẮT BUỘC: Mã hóa ngược toàn bộ link ngắn kèm param Facebook một lần nữa
-                // Nhét tất cả vào trong tham số ?url= của cổng universal-link chính thức
-                // Khi App mở ra, nó sẽ giải mã đồng thời cả cụm và KHÔNG bao giờ làm rơi cấu trúc Facebook Whitelist của bạn
-                finalRedirectUrl = "https://shopee.vn/universal-link/?url=" + encodeURIComponent(cleanTarget);
-            } 
-            // Nếu là link dài sẵn
-            else {
+            let isShortLink = cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee");
+
+            // =================================================================
+            // LUỒNG 1: XỬ LÝ LINK NGẮN (s.shopee.vn, vn.shp.ee)
+            // =================================================================
+            if (isShortLink) {
+                // Tuyệt đối không encodeURIComponent thêm một lần nào nữa ở đây
+                // Thả thẳng link rút gọn đã kẹp sẵn param Facebook từ Bot vào App
                 finalRedirectUrl = cleanTarget;
+            } 
+            // =================================================================
+            // LUỒNG 2: XỬ LÝ LINK DÀI (Bóc tách ID động)
+            // =================================================================
+            else {
+                let shopId = "";
+                let itemId = "";
+
+                const regexProduct = /\/product\/(\d+)\/(\d+)/;
+                const regexDashI = /-i\.(\d+)\.(\d+)/;
+                let match = cleanTarget.match(regexProduct) || cleanTarget.match(regexDashI);
+                
+                if (match && match[1] && match[2]) {
+                    shopId = match[1];
+                    itemId = match[2];
+                    let queryString = cleanTarget.split("?")[1] || "";
+                    // Dựng cấu trúc path Universal gốc cực sạch của Shopee
+                    finalRedirectUrl = "https://shopee.vn/universal-link/product/" + shopId + "/" + itemId + (queryString ? "?" + queryString : "");
+                } else {
+                    finalRedirectUrl = cleanTarget;
+                }
             }
 
-            // ĐIỀU HƯỚNG THEO HỆ ĐIỀU HÀNH VÀ KHỬ LỖI TRÙNG LẶP PROTOCOL TRÊN ANDROID
+            // =================================================================
+            // THIẾT LẬP INTENT MỞ APP TRÊN ANDROID (XÓA BỎ LỖI KHỰNG TRANG CHỦ)
+            // =================================================================
             const isAndroid = /Android/i.test(navigator.userAgent);
+            
             if (isAndroid) {
                 let intentPath = finalRedirectUrl
                     .replace("https://shopee.vn/", "")
@@ -74,10 +103,11 @@
                     .replace("https://shope.ee/", "")
                     .replace("https://vn.shp.ee/", "");
                 
+                // Ép chạy cấu trúc Intent chuẩn để Android kích hoạt sâu vào Activity sản phẩm
                 finalRedirectUrl = "intent://shopee.vn/" + intentPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             }
 
-            document.getElementById("status-text").innerText = "🎉 Xác thực nguồn Facebook thành công! Đang mở App...";
+            document.getElementById("status-text").innerText = "🎉 Cấu trúc Facebook chuẩn xác! Đang mở sản phẩm...";
 
             function forceOpenApp() {
                 if (finalRedirectUrl) {
@@ -86,15 +116,17 @@
             }
             window.forceOpenApp = forceOpenApp;
 
-            // Kích hoạt chuỗi lệnh mở app đa tầng
+            // Thực thi chuỗi gọi App liên tiếp
             forceOpenApp();
             window.addEventListener('scroll', forceOpenApp, { passive: true });
             document.addEventListener('touchstart', forceOpenApp, { passive: true });
             document.addEventListener('click', forceOpenApp);
-            setTimeout(forceOpenApp, 800);
+            
+            setTimeout(forceOpenApp, 500);
 
         } else {
-            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Thiếu tham số dữ liệu.</span>";
+            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Cấu trúc đường dẫn không hợp lệ.</span>";
+            document.getElementById("fallback-btn").style.display = "none";
         }
     </script>
 </body>
