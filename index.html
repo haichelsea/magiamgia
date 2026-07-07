@@ -9,18 +9,17 @@
         .loading-box { padding: 40px 20px; background: white; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .orange-text { color: #ee4d2d; font-weight: bold; }
         .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; }
-        .status-msg { font-size: 14px; color: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="loading-box">
-        <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ FACEBOOK VOUCHER...</h3>
-        <p class="status-msg" id="status">Đang phân tách dữ liệu link Affiliate & Mã giảm giá...</p>
+        <h3 class="orange-text">🔄 ĐANG KÍCH HOẠT VOUCHER ĐẶC QUYỀN...</h3>
+        <p style="font-size: 14px; color: #666;">Hệ thống đang đồng bộ ưu đãi. Vui lòng <span class="orange-text">Vuốt nhẹ màn hình xuống</span> hoặc chạm vào màn hình để mở App Shopee!</p>
     </div>
 
     <div class="instruction-card">
-        💡 <b>Mẹo nhỏ:</b> Vui lòng <span class="orange-text">Vuốt nhẹ màn hình xuống</span> hoặc chạm vào màn hình để kích hoạt mở thẳng App Shopee nếu hệ thống bị khựng lại!
+        💡 <b>Thông báo:</b> Mã giảm giá và link Affiliate đặc quyền đang được nạp tự động vào ứng dụng Shopee của bạn.
     </div>
 
     <script>
@@ -32,77 +31,55 @@
         const rawUrl = getQueryParam('url');
         const voucherCode = getQueryParam('voucherCode') || 'METAPAR2JULD22300';
 
-        // Chuỗi Tracking Facebook Voucher chứa mã Affiliate gốc (an_17104820001) bảo toàn nguyên bản
+        // Chuỗi Tracking Facebook Voucher chứa mã Affiliate gốc (an_17104820001) bảo toàn nguyên bản dính chặt dấu ~ và .
         const fbVoucherTracking = "credential_token=8wEwiDL7ZRpPGmoDXMwtWBhJaNQd8qsEBWLencs7HZ&uls_trackid=562ve0mb03uf&utm_campaign=--fbcontent_57FShPzMqbIV6XFnAAVKipIIJmS5COaFKj2..R0A4nrlVhIR8910Ul7tbiBqdecR4JRr9WbgydzKYSOAiIHureYC~0xDOgEv7F7DLrkBsrWYALeslcD5IfJeeX23cm2ESsKHfLlvwFjBko5VVsBtuld26t7vkqJIhGC2Yg76rKniImO27P1hSe0E9rehu.M9PYmj16rfSf.yKGULS10&utm_term=f6rjsmperkxx&utm_medium=affiliates&utm_content=YT3--zG-2_er8cW8M0Lq-9v4YkFXE23zWlrO6p-3Gx6U6eP5CmvzFvKTcizpWigJj0ni602DXy87Eq9p77dgRD5UKxhINzoOfjJbTrwIfHbyDbKR1RU9xpe8pdCOb1rthnBCBlbopbmBhnc&utm_source=an_17104820001";
 
         if (rawUrl) {
-            // Trường hợp 1: Nếu Bot truyền lên đã là link dài (Có dạng i.shopid.itemid)
-            if (rawUrl.includes("-i.") || rawUrl.includes("/product/")) {
-                processAndRedirect(rawUrl);
+            let finalLinkToOpen = "";
+            const cleanRawUrl = rawUrl.split('?')[0].trim();
+
+            // TRƯỜNG HỢP 1: Khách gửi link rút gọn (vn.shp.ee, s.shopee.vn, shope.ee)
+            if (cleanRawUrl.includes("shp.ee") || cleanRawUrl.includes("shope.ee")) {
+                // TUYỆT CHIÊU: Bọc link rút gọn bằng cổng điều hướng Universal gốc của Shopee.
+                // Bản thân App Shopee có khả năng tự bóc link ngắn nếu nó được nhét vào tham số đường dẫn cha.
+                finalLinkToOpen = "https://shopee.vn/universal-link/?url=" + encodeURIComponent(cleanRawUrl) + "&voucherCode=" + voucherCode + "&" + fbVoucherTracking;
             } 
-            // Trường hợp 2: Nếu là link rút gọn vn.shp.ee hoặc s.shopee.vn, gọi API giải mã ẩn
+            // TRƯỜNG HỢP 2: Khách gửi link dài sẵn (shopee.vn/product/... hoặc dạng có -i.shopid.itemid)
             else {
-                document.getElementById("status").innerText = "🔄 Đang bóc tách link rút gọn của Shopee...";
-                
-                // Sử dụng cors-anywhere công cộng hoặc fetch trực tiếp qua API unshorten ngầm của Shopee
-                fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(rawUrl))
-                    .then(response => {
-                        if (response.ok) return response.json();
-                        throw new Error('Network error');
-                    })
-                    .then(data => {
-                        // Trích xuất URL thực tế sau khi chuyển hướng
-                        const resolvedUrl = data.contents;
-                        processAndRedirect(resolvedUrl);
-                    })
-                    .catch(err => {
-                        console.log("⚠️ Lỗi API bọc, thử chuyển hướng thô: " + err);
-                        processAndRedirect(rawUrl);
-                    });
-            }
-        } else {
-            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Không tìm thấy liên kết sản phẩm hợp lệ.</p>";
-        }
+                let shopId = "803395891"; 
+                let itemId = "55051604280";
 
-        // HÀM XỬ LÝ GHÉP CHUỖI AFFILIATE + FACEBOOK VOUCHER VÀ BẬT APP
-        function processAndRedirect(targetUrl) {
-            let shopId = "803395891"; // ID mặc định của chiến dịch
-            let itemId = "55051604280";
+                const regex1 = /\/product\/(\d+)\/(\d+)/;
+                const regex2 = /-i\.(\d+)\.(\d+)/;
+                let match = cleanRawUrl.match(regex1) || cleanRawUrl.match(regex2);
 
-            // Bóc tách ShopID và ItemID từ URL dài bằng Regex
-            const regex1 = /\/product\/(\d+)\/(\d+)/;
-            const regex2 = /-i\.(\d+)\.(\d+)/;
-            let match = targetUrl.match(regex1) || targetUrl.match(regex2);
-
-            if (match && match[1] && match[2]) {
-                shopId = match[1];
-                itemId = match[2];
+                if (match && match[1] && match[2]) {
+                    shopId = match[1];
+                    itemId = match[2];
+                }
+                finalLinkToOpen = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?voucherCode=" + voucherCode + "&" + fbVoucherTracking;
             }
 
-            // DỰNG LẠI UNIVERSAL LINK ĐẶC CHỦNG HOÀN CHỈNH (Ép dính chặt mã Affiliate và Facebook Voucher)
-            const finalShopeeLink = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?voucherCode=" + voucherCode + "&" + fbVoucherTracking;
-            
-            // Đóng gói cấu trúc cấu hình cho Android và iOS
-            const shopeePath = finalShopeeLink.replace("https://shopee.vn/", "");
+            // ĐỊNH DẠNG CẤU TRÚC INTENT KHÔNG LỖI CHO ANDROID & IOS
+            const shopeePath = finalLinkToOpen.replace("https://shopee.vn/", "");
             const androidIntentLink = "intent://shopee.vn/" + shopeePath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             
             const isAndroid = /Android/i.test(navigator.userAgent);
-            const finalLinkToOpen = isAndroid ? androidIntentLink : finalShopeeLink;
+            const targetLink = isAndroid ? androidIntentLink : finalLinkToOpen;
 
-            document.getElementById("status").innerHTML = "🎉 Đồng bộ thành công! Đang kích hoạt App Shopee...";
-
-            // Hàm thực thi lệnh mở App
-            function go() {
-                window.location.href = finalLinkToOpen;
+            // Hàm thực thi lệnh mở App lập tức
+            function trigger() {
+                window.location.href = targetLink;
             }
 
-            // Gọi lệnh chạy tự động ngay lập tức
-            go();
+            // Gọi kích hoạt tự động + phá băng bộ lọc giữ chân của Zalo Webview
+            trigger();
+            window.addEventListener('scroll', trigger, { passive: true });
+            document.addEventListener('touchstart', trigger, { passive: true });
+            document.addEventListener('click', trigger);
 
-            // Lắng nghe hành động vuốt/chạm vật lý phá băng Zalo Webview
-            window.addEventListener('scroll', go, { passive: true });
-            document.addEventListener('touchstart', go, { passive: true });
-            document.addEventListener('click', go);
+        } else {
+            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Link sản phẩm không hợp lệ.</p>";
         }
     </script>
 </body>
