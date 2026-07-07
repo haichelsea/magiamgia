@@ -6,26 +6,33 @@
 </head>
 <body>
     <p style="text-align: center; margin-top: 50px; font-family: Arial, sans-serif; color: #333;">
-        🔄 Đang kết nối dữ liệu Facebook Voucher và mở App Shopee, vui lòng chờ trong giây lát...
+        🔄 Đang kích hoạt Facebook Voucher và mở App Shopee, vui lòng chờ...
     </p>
 
     <script>
-        // Hàm lấy tham số từ URL chính xác
+        // 1. Hàm lấy link sản phẩm gốc từ tham số 'url'
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
 
-        const targetUrl = getQueryParam('target');
+        const productUrl = getQueryParam('url');
+        const voucherCode = getQueryParam('voucherCode') || 'METAPAR2JULD22300';
 
-        if (targetUrl) {
-            // Giải mã URL Shopee đích thực (chứa đầy đủ FB tracking + voucherCode)
-            const cleanDestination = decodeURIComponent(targetUrl);
-            
-            // Lệnh tối cao: Bật thẳng App Shopee nhảy vào sản phẩm với nguyên vẹn tham số
-            window.location.href = cleanDestination;
+        if (productUrl) {
+            // Lấy phần link gốc (bỏ param cũ nếu có)
+            const cleanProductUrl = productUrl.split('?')[0];
+
+            // 2. GIỮ NGUYÊN 100% ĐOẠN MÃ FACEBOOK GỐC KHÔNG QUA MÃ HÓA PYTHON
+            const fbVoucherTracking = "utm_campaign=--fbcontent_57FShPzMqbIV6XFnAAVKipIIJmS5COaFKj2..R0A4nrlVhIR8910Ul7tbiBqdecR4JRr9WbgydzKYSOAiIHureYC~0xDOgEv7F7DLrkBsrWYALeslcD5IfJeeX23cm2ESsKHfLlvwFjBko5VVsBtuld26t7vkqJIhGC2Yg76rKniImO27P1hSe0E9rehu.M9PYmj16rfSf.yKGULS10&utm_term=f6rjsmperkxx&utm_medium=affiliates&utm_content=YT3--zG-2_er8cW8M0Lq-9v4YkFXE23zWlrO6p-3Gx6U6eP5CmvzFvKTcizpWigJj0ni602DXy87Eq9p77dgRD5UKxhINzoOfjJbTrwIfHbyDbKR1RU9xpe8pdCOb1rthnBCBlbopbmBhnc&utm_source=an_17104820001";
+
+            // 3. Gộp chuỗi trực tiếp trên trình duyệt (Đảm bảo có dấu ~ và dấu . nguyên bản)
+            const finalShopeeLink = cleanProductUrl + "?voucherCode=" + voucherCode + "&" + fbVoucherTracking;
+
+            // 4. Bật App Shopee nhảy vào sản phẩm kèm đầy đủ tracking chuẩn 100%
+            window.location.href = finalShopeeLink;
         } else {
-            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Liên kết ưu đãi không hợp lệ.</p>";
+            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Không tìm thấy link sản phẩm.</p>";
         }
     </script>
 </body>
