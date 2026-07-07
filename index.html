@@ -32,21 +32,25 @@
         const targetUrl = getQueryParam('target');
 
         if (targetUrl) {
-            let finalLinkToOpen = targetUrl;
+            let finalLinkToOpen = targetUrl.trim();
 
-            // Xử lý Universal Link tối ưu dựa trên cấu trúc link rút gọn hay link dài
-            if (targetUrl.includes("shp.ee") || targetUrl.includes("shope.ee")) {
-                // Nếu là link ngắn, bọc bằng cổng universal-link của Shopee để App tự giải mã client-side
-                finalLinkToOpen = "https://shopee.vn/universal-link/?url=" + encodeURIComponent(targetUrl);
-            } else if (targetUrl.includes("shopee.vn")) {
-                // Nếu đã là link dài, chuyển đổi trực tiếp cấu trúc sang dạng Universal Link mở App trực tiếp
-                const cleanPath = targetUrl.replace("https://shopee.vn/", "");
-                finalLinkToOpen = "https://shopee.vn/universal-link/" + cleanPath;
+            // SỬA LỖI CORE: Chuẩn hóa cấu trúc Universal Link mở thẳng App Shopee
+            if (finalLinkToOpen.includes("shopee.vn") || finalLinkToOpen.includes("shope.ee")) {
+                // Nếu bản thân link truyền vào đã có domain Shopee, ta giữ nguyên nó làm link mở app cho iOS
+                // Bản thân hệ thống Shopee sẽ tự xử lý routing client-side dựa trên các tham số UTM có sẵn
+                finalLinkToOpen = targetUrl;
             }
 
-            // XỬ LÝ ĐỊNH DẠNG INTENT CHỐNG KẸT WEBVIEW TRÊN ANDROID
-            const shopeePath = finalLinkToOpen.replace("https://shopee.vn/", "");
-            const androidIntentLink = "intent://shopee.vn/" + shopeePath + "#Intent;scheme=https;package=com.shopee.vn;end;";
+            // XỬ LÝ ĐỊNH DẠNG INTENT CHUẨN ĐỂ KHÔNG BỊ TRÙNG LẶP PROTOCOL TRÊN ANDROID
+            // Loại bỏ hoàn toàn các ký tự domain để trích xuất phần path sạch nạp vào cấu trúc Intent bẻ gãy bộ lọc Zalo
+            let cleanPath = finalLinkToOpen
+                .replace("https://shopee.vn/", "")
+                .replace("https://s.shopee.vn/", "")
+                .replace("https://shope.ee/", "")
+                .replace("https://vn.shp.ee/", "");
+            
+            // Xây dựng cổng Intent chuẩn không bao giờ dính lỗi lặp chữ shopee.vn
+            const androidIntentLink = "intent://shopee.vn/" + cleanPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             
             const isAndroid = /Android/i.test(navigator.userAgent);
             const finalRedirectUrl = isAndroid ? androidIntentLink : finalLinkToOpen;
