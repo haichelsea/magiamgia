@@ -1,72 +1,37 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đang chuyển hướng ưu đãi...</title>
-</head>
-<body>
-    <div style="text-align: center; margin-top: 60px; font-family: Arial, sans-serif; padding: 20px;">
-        <h3 style="color: #ee4d2d;">🔄 ĐANG KÍCH HOẠT VOUCHER VÀ MỞ APP SHOPEE...</h3>
-        <p style="color: #666; font-size: 14px;">Hệ thống đang điều hướng an toàn, vui lòng chờ trong giây lát.</p>
+<script>
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    const productUrl = getQueryParam('url');
+    const voucherCode = getQueryParam('voucherCode') || 'METAPAR2JULD22300';
+
+    if (productUrl) {
+        // Tạo link Shopee có gắn mã định danh Facebook Voucher gốc giống như trước
+        const cleanProductUrl = productUrl.split('?')[0];
+        const fbVoucherTracking = "utm_campaign=--fbcontent_57FShPzMqbIV6XFnAAVKipIIJmS5COaFKj2..R0A4nrlVhIR8910Ul7tbiBqdecR4JRr9WbgydzKYSOAiIHureYC~0xDOgEv7F7DLrkBsrWYALeslcD5IfJeeX23cm2ESsKHfLlvwFjBko5VVsBtuld26t7vkqJIhGC2Yg76rKniImO27P1hSe0E9rehu.M9PYmj16rfSf.yKGULS10&utm_term=f6rjsmperkxx&utm_medium=affiliates&utm_content=YT3--zG-2_er8cW8M0Lq-9v4YkFXE23zWlrO6p-3Gx6U6eP5CmvzFvKTcizpWigJj0ni602DXy87Eq9p77dgRD5UKxhINzoOfjJbTrwIfHbyDbKR1RU9xpe8pdCOb1rthnBCBlbopbmBhnc&utm_source=an_17104820001";
+        const queryParams = "?voucherCode=" + voucherCode + "&" + fbVoucherTracking;
+        const finalShopeeLink = cleanProductUrl + queryParams;
+
+        // 🔥 TUYỆT CHIÊU: ÉP TRÌNH DUYỆT ZALO PHẢI VĂNG RA NGOÀI TRÌNH DUYỆT MÁY
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
         
-        <a id="fallback-btn" href="#" style="display: none; margin-top: 20px; padding: 12px 24px; background-color: #ee4d2d; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
-            BẤM VÀO ĐÂY ĐỂ MỞ APP
-        </a>
-    </div>
-
-    <script>
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
-
-        const productUrl = getQueryParam('url');
-        const voucherCode = getQueryParam('voucherCode') || 'METAPAR2JULD22300';
-
-        if (productUrl) {
-            const cleanProductUrl = productUrl.split('?')[0];
-            
-            // 1. Giữ nguyên bản 100% cụm mã Facebook Voucher (Có dấu ~ và dấu .)
-            const fbVoucherTracking = "utm_campaign=--fbcontent_57FShPzMqbIV6XFnAAVKipIIJmS5COaFKj2..R0A4nrlVhIR8910Ul7tbiBqdecR4JRr9WbgydzKYSOAiIHureYC~0xDOgEv7F7DLrkBsrWYALeslcD5IfJeeX23cm2ESsKHfLlvwFjBko5VVsBtuld26t7vkqJIhGC2Yg76rKniImO27P1hSe0E9rehu.M9PYmj16rfSf.yKGULS10&utm_term=f6rjsmperkxx&utm_medium=affiliates&utm_content=YT3--zG-2_er8cW8M0Lq-9v4YkFXE23zWlrO6p-3Gx6U6eP5CmvzFvKTcizpWigJj0ni602DXy87Eq9p77dgRD5UKxhINzoOfjJbTrwIfHbyDbKR1RU9xpe8pdCOb1rthnBCBlbopbmBhnc&utm_source=an_17104820001";
-            const queryParams = "?voucherCode=" + voucherCode + "&" + fbVoucherTracking;
-
-            // 2. Tạo đường dẫn Universal Link tiêu chuẩn cho iOS / Máy tính
-            let standardShopeeLink = cleanProductUrl + queryParams;
-            if (cleanProductUrl.includes("shopee.vn") && !cleanProductUrl.includes("universal-link")) {
-                const match = cleanProductUrl.match(/-i\.(\d+)\.(\d+)/);
-                if (match && match[1] && match[2]) {
-                    standardShopeeLink = "https://shopee.vn/universal-link/product/" + match[1] + "/" + match[2] + "/" + queryParams;
-                }
-            }
-
-            // 3. ĐẶC TRỊ ANDROID TRÊN ZALO: Tạo cấu trúc Intent ép mở App nền tảng
-            // Trích xuất phần path của Shopee (bỏ tên miền) để nhét vào schema intent
-            const shopeePath = standardShopeeLink.replace("https://shopee.vn/", "");
-            const androidIntentLink = "intent://shopee.vn/" + shopeePath + "#Intent;scheme=https;package=com.shopee.vn;end;";
-
-            // 4. KIỂM TRA THIẾT BỊ VÀ PHÁT LỆNH ĐIỀU HƯỚNG TỐI CAO
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            
-            // Cập nhật nút bấm dự phòng phòng trường hợp hệ điều hành chặn tự động
-            const fallbackBtn = document.getElementById('fallback-btn');
-            fallbackBtn.href = isAndroid ? androidIntentLink : standardShopeeLink;
-            fallbackBtn.style.display = "inline-block";
-
-            if (isAndroid) {
-                // Ép Android mở thẳng App bằng giao thức Intent
-                window.location.href = androidIntentLink;
+        if (/Zalo/i.test(userAgent)) {
+            // Thêm tham số đặc chủng để bẻ gãy Webview của các ứng dụng chat chat
+            if (/Android/i.test(userAgent)) {
+                // Ép Android mở bằng Chrome bằng cách đóng gói link vào hệ thống intent gốc
+                window.location.href = "intent://" + window.location.href.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end;";
             } else {
-                // Ép iOS/Safari mở bằng Universal Link kết hợp iframe/location phá băng
-                window.location.href = standardShopeeLink;
-                setTimeout(function() {
-                    window.location.replace(standardShopeeLink);
-                }, 500);
+                // Với iOS, tận dụng cơ chế tải file ảo hoặc tạo tương tác mạnh để ép người dùng chọn "Mở bằng Safari"
+                window.location.href = finalShopeeLink;
             }
-
         } else {
-            document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Link sản phẩm không hợp lệ.</p>";
+            // Nếu đã ra ngoài Chrome/Safari rồi thì tự động bật App Shopee như bình thường
+            window.location.href = finalShopeeLink;
         }
-    </script>
-</body>
-</html>
+
+    } else {
+        document.body.innerHTML = "<p style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Link không hợp lệ.</p>";
+    }
+</script>
