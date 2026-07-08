@@ -16,7 +16,7 @@
 
     <div class="loading-box">
         <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ CHIẾN DỊCH VOUCHER...</h3>
-        <p id="status-text">Đang phân tích cấu trúc link đích Facebook...</p>
+        <p id="status-text">Đang đồng bộ cấu trúc link chuẩn từ Bot...</p>
     </div>
 
     <button class="btn-open-app" id="fallback-btn" onclick="forceOpenApp()">
@@ -33,31 +33,39 @@
             return string ? decodeURIComponent(string[1]) : null;
         }
 
+        // Nhận liên kết target thô từ Bot gửi sang
         const targetUrl = getQueryParamAdvanced('target');
 
         if (targetUrl) {
             const cleanTarget = targetUrl.trim();
             
-            // Tách phần query string chứa cụm mã Facebook VIP
-            let queryString = cleanTarget.split("?")[1] || "";
-            
-            let shopId = "1106380974"; // Mặc định phòng hờ
-            let itemId = "25472265195";
+            // Kiểm tra xem link gốc bot gửi sang là link ngắn hay link dài
+            let isShortLink = cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee");
 
-            // Thuật toán bóc tách ID từ link dài hoặc link bất kỳ
-            const regexProduct = /\/product\/(\d+)\/(\d+)/;
-            const regexDashI = /-i\.(\d+)\.(\d+)/;
-            let match = cleanTarget.match(regexProduct) || cleanTarget.match(regexDashI);
-            
-            if (match && match[1] && match[2]) {
-                shopId = match[1];
-                itemId = match[2];
+            if (isShortLink) {
+                // LUỒNG 1: GIỮ NGUYÊN LINK NGẮN KÈM TOKEN (Không bóc tách ID bừa bãi)
+                finalRedirectUrl = cleanTarget;
+            } else {
+                // LUỒNG 2: LINK DÀI -> BÓC TÁCH ID VÀ DỰNG CẤU TRÚC OPAANLP
+                let queryString = cleanTarget.split("?")[1] || "";
+                let shopId = "";
+                let itemId = "";
+
+                const regexProduct = /\/product\/(\d+)\/(\d+)/;
+                const regexDashI = /-i\.(\d+)\.(\d+)/;
+                let match = cleanTarget.match(regexProduct) || cleanTarget.match(regexDashI);
+                
+                if (match && match[1] && match[2]) {
+                    shopId = match[1];
+                    itemId = match[2];
+                    finalRedirectUrl = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?" + queryString;
+                } else {
+                    // Nếu link dài lạ không bóc được ID, trả về chính nó làm dự phòng an toàn thay vì ID ảo
+                    finalRedirectUrl = cleanTarget;
+                }
             }
 
-            // DỰNG CẤU TRÚC OPAANLP CHUẨN ĐỂ ÉP APP HIỂN THỊ ĐÚNG TRANG ĐÍCH KHÔNG BỊ RÚT GỌN LINK
-            finalRedirectUrl = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?" + queryString;
-
-            // XỬ LÝ ĐỘC QUYỀN CHO ANDROID CHỐNG LỖI VĂNG VỀ TRANG CHỦ
+            // XỬ LÝ CHUYỂN ĐỔI GIAO THỨC INTENT CHO DÒNG MÁY ANDROID CHỐNG LỖI VĂNG TRANG CHỦ
             const isAndroid = /Android/i.test(navigator.userAgent);
             if (isAndroid) {
                 let intentPath = finalRedirectUrl
