@@ -9,38 +9,19 @@
         .loading-box { padding: 40px 20px; background: white; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .orange-text { color: #ee4d2d; font-weight: bold; }
         .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; line-height: 1.5; }
-        
-        .btn-open-app {
-            display: inline-block;
-            margin: 20px auto;
-            padding: 16px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            color: white;
-            background-color: #ee4d2d;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            text-decoration: none;
-            box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4);
-        }
+        .btn-open-app { display: inline-block; margin: 20px auto; padding: 16px 30px; font-size: 16px; font-weight: bold; color: white; background-color: #ee4d2d; border: none; border-radius: 25px; cursor: pointer; text-decoration: none; box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4); }
     </style>
 </head>
 <body>
 
     <div class="loading-box">
-        <h3 class="orange-text">🔄 ĐANG ĐIỀU HƯỚNG ĐẾN SẢN PHẨM...</h3>
-        <p id="status-text">Đang đồng bộ luồng dữ liệu Facebook Campaign...</p>
+        <h3 class="orange-text">🔄 ĐANG KÍCH HOẠT VOUCHER FACEBOOK...</h3>
+        <p id="status-text">Đang đồng bộ cổng liên kết dữ liệu...</p>
     </div>
 
     <button class="btn-open-app" id="fallback-btn" onclick="forceOpenApp()">
-        🛍️ BẤM VÀO ĐÂY ĐỂ MỞ SẢN PHẨM TRÊN APP
+        🛍️ BẤM VÀO ĐÂY ĐỂ NHẬN VOUCHER TRÊN APP
     </button>
-
-    <div class="instruction-card">
-        💡 <b>MẸO KÍCH HOẠT:</b><br>
-        Hệ thống đang tự động mở thẳng trang sản phẩm trên App Shopee. Nếu bị khựng lại ở trang chủ, bạn hãy nhấn vào <b>Nút màu cam ở trên</b> để ép hệ thống nhảy thẳng vào sản phẩm!
-    </div>
 
     <script>
         let finalRedirectUrl = "";
@@ -52,50 +33,14 @@
             return string ? decodeURIComponent(string[1]) : null;
         }
 
-        // Đọc link target đã được Bot Python mã hóa sẵn
+        // 1. Nhận link target đã được Bot Python dựng sẵn hoàn chỉnh từ cổng chat Zalo sang
         const targetUrl = getQueryParamAdvanced('target');
 
         if (targetUrl) {
-            // Giải mã link target một lần để đưa về dạng link thuần chuẩn (Xóa bỏ Double Encoding)
-            const cleanTarget = targetUrl.trim();
-            
-            let isShortLink = cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee");
+            finalRedirectUrl = targetUrl.trim();
 
-            // =================================================================
-            // LUỒNG 1: XỬ LÝ LINK NGẮN (s.shopee.vn, vn.shp.ee)
-            // =================================================================
-            if (isShortLink) {
-                // Tuyệt đối không encodeURIComponent thêm một lần nào nữa ở đây
-                // Thả thẳng link rút gọn đã kẹp sẵn param Facebook từ Bot vào App
-                finalRedirectUrl = cleanTarget;
-            } 
-            // =================================================================
-            // LUỒNG 2: XỬ LÝ LINK DÀI (Bóc tách ID động)
-            // =================================================================
-            else {
-                let shopId = "";
-                let itemId = "";
-
-                const regexProduct = /\/product\/(\d+)\/(\d+)/;
-                const regexDashI = /-i\.(\d+)\.(\d+)/;
-                let match = cleanTarget.match(regexProduct) || cleanTarget.match(regexDashI);
-                
-                if (match && match[1] && match[2]) {
-                    shopId = match[1];
-                    itemId = match[2];
-                    let queryString = cleanTarget.split("?")[1] || "";
-                    // Dựng cấu trúc path Universal gốc cực sạch của Shopee
-                    finalRedirectUrl = "https://shopee.vn/universal-link/product/" + shopId + "/" + itemId + (queryString ? "?" + queryString : "");
-                } else {
-                    finalRedirectUrl = cleanTarget;
-                }
-            }
-
-            // =================================================================
-            // THIẾT LẬP INTENT MỞ APP TRÊN ANDROID (XÓA BỎ LỖI KHỰNG TRANG CHỦ)
-            // =================================================================
+            // 2. Đồng bộ xử lý cho hệ điều hành Android (Ép mở sâu App bằng cấu trúc Intent chính thống)
             const isAndroid = /Android/i.test(navigator.userAgent);
-            
             if (isAndroid) {
                 let intentPath = finalRedirectUrl
                     .replace("https://shopee.vn/", "")
@@ -103,11 +48,10 @@
                     .replace("https://shope.ee/", "")
                     .replace("https://vn.shp.ee/", "");
                 
-                // Ép chạy cấu trúc Intent chuẩn để Android kích hoạt sâu vào Activity sản phẩm
                 finalRedirectUrl = "intent://shopee.vn/" + intentPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             }
 
-            document.getElementById("status-text").innerText = "🎉 Cấu trúc Facebook chuẩn xác! Đang mở sản phẩm...";
+            document.getElementById("status-text").innerText = "🎉 Xác thực cấu trúc Facebook thành công! Đang vào App...";
 
             function forceOpenApp() {
                 if (finalRedirectUrl) {
@@ -116,17 +60,15 @@
             }
             window.forceOpenApp = forceOpenApp;
 
-            // Thực thi chuỗi gọi App liên tiếp
+            // 3. Chuỗi kích hoạt mở App liên tục tốc độ cao chống nghẽn Webview
             forceOpenApp();
             window.addEventListener('scroll', forceOpenApp, { passive: true });
             document.addEventListener('touchstart', forceOpenApp, { passive: true });
             document.addEventListener('click', forceOpenApp);
-            
-            setTimeout(forceOpenApp, 500);
+            setTimeout(forceOpenApp, 400);
 
         } else {
-            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Cấu trúc đường dẫn không hợp lệ.</span>";
-            document.getElementById("fallback-btn").style.display = "none";
+            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Thiếu dữ liệu cấu trúc chiến dịch target.</span>";
         }
     </script>
 </body>
