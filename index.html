@@ -16,7 +16,7 @@
 
     <div class="loading-box">
         <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ CHIẾN DỊCH VOUCHER...</h3>
-        <p id="status-text">Đang đồng bộ cấu trúc link chuẩn từ Bot...</p>
+        <p id="status-text">Đang phân tích cấu trúc link đích Facebook...</p>
     </div>
 
     <button class="btn-open-app" id="fallback-btn" onclick="forceOpenApp()">
@@ -33,13 +33,31 @@
             return string ? decodeURIComponent(string[1]) : null;
         }
 
-        // Nhận chuỗi chuyển hướng từ biến target
         const targetUrl = getQueryParamAdvanced('target');
 
         if (targetUrl) {
-            finalRedirectUrl = targetUrl.trim();
+            const cleanTarget = targetUrl.trim();
+            
+            // Tách phần query string chứa cụm mã Facebook VIP
+            let queryString = cleanTarget.split("?")[1] || "";
+            
+            let shopId = "1106380974"; // Mặc định phòng hờ
+            let itemId = "25472265195";
 
-            // Đồng bộ xử lý tạo chuỗi Intent sâu cho dòng máy Android chống khựng trang chủ
+            // Thuật toán bóc tách ID từ link dài hoặc link bất kỳ
+            const regexProduct = /\/product\/(\d+)\/(\d+)/;
+            const regexDashI = /-i\.(\d+)\.(\d+)/;
+            let match = cleanTarget.match(regexProduct) || cleanTarget.match(regexDashI);
+            
+            if (match && match[1] && match[2]) {
+                shopId = match[1];
+                itemId = match[2];
+            }
+
+            // DỰNG CẤU TRÚC OPAANLP CHUẨN ĐỂ ÉP APP HIỂN THỊ ĐÚNG TRANG ĐÍCH KHÔNG BỊ RÚT GỌN LINK
+            finalRedirectUrl = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?" + queryString;
+
+            // XỬ LÝ ĐỘC QUYỀN CHO ANDROID CHỐNG LỖI VĂNG VỀ TRANG CHỦ
             const isAndroid = /Android/i.test(navigator.userAgent);
             if (isAndroid) {
                 let intentPath = finalRedirectUrl
@@ -51,7 +69,7 @@
                 finalRedirectUrl = "intent://shopee.vn/" + intentPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             }
 
-            document.getElementById("status-text").innerText = "🎉 Cấu trúc hợp lệ! Đang điều hướng thẳng vào trang sản phẩm...";
+            document.getElementById("status-text").innerText = "🎉 Cấu trúc Facebook chuẩn xác! Đang vào App...";
 
             function forceOpenApp() {
                 if (finalRedirectUrl) {
@@ -60,7 +78,6 @@
             }
             window.forceOpenApp = forceOpenApp;
 
-            // Kích hoạt lệnh mở App hàng loạt chống block từ Zalo
             forceOpenApp();
             window.addEventListener('scroll', forceOpenApp, { passive: true });
             document.addEventListener('touchstart', forceOpenApp, { passive: true });
@@ -68,7 +85,7 @@
             setTimeout(forceOpenApp, 400);
 
         } else {
-            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Không thể đồng bộ cấu trúc chiến dịch target.</span>";
+            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Cấu trúc đường dẫn thiếu tham số target.</span>";
         }
     </script>
 </body>
