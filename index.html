@@ -15,12 +15,12 @@
 <body>
 
     <div class="loading-box">
-        <h3 class="orange-text">🔄 ĐANG KÍCH HOẠT VOUCHER FACEBOOK...</h3>
-        <p id="status-text">Đang đồng bộ cổng liên kết dữ liệu...</p>
+        <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ CHIẾN DỊCH VOUCHER...</h3>
+        <p id="status-text">Đang đồng bộ cấu trúc link chuẩn từ Bot...</p>
     </div>
 
     <button class="btn-open-app" id="fallback-btn" onclick="forceOpenApp()">
-        🛍️ BẤM VÀO ĐÂY ĐỂ NHẬN VOUCHER TRÊN APP
+        🛍️ BẤM VÀO ĐÂY ĐỂ MỞ SẢN PHẨM TRÊN APP
     </button>
 
     <script>
@@ -33,13 +33,13 @@
             return string ? decodeURIComponent(string[1]) : null;
         }
 
-        // 1. Nhận link target đã được Bot Python dựng sẵn hoàn chỉnh từ cổng chat Zalo sang
+        // Nhận chuỗi chuyển hướng từ biến target
         const targetUrl = getQueryParamAdvanced('target');
 
         if (targetUrl) {
             finalRedirectUrl = targetUrl.trim();
 
-            // 2. Đồng bộ xử lý cho hệ điều hành Android (Ép mở sâu App bằng cấu trúc Intent chính thống)
+            // Đồng bộ xử lý tạo chuỗi Intent sâu cho dòng máy Android chống khựng trang chủ
             const isAndroid = /Android/i.test(navigator.userAgent);
             if (isAndroid) {
                 let intentPath = finalRedirectUrl
@@ -51,7 +51,7 @@
                 finalRedirectUrl = "intent://shopee.vn/" + intentPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
             }
 
-            document.getElementById("status-text").innerText = "🎉 Xác thực cấu trúc Facebook thành công! Đang vào App...";
+            document.getElementById("status-text").innerText = "🎉 Cấu trúc hợp lệ! Đang điều hướng thẳng vào trang sản phẩm...";
 
             function forceOpenApp() {
                 if (finalRedirectUrl) {
@@ -60,7 +60,7 @@
             }
             window.forceOpenApp = forceOpenApp;
 
-            // 3. Chuỗi kích hoạt mở App liên tục tốc độ cao chống nghẽn Webview
+            // Kích hoạt lệnh mở App hàng loạt chống block từ Zalo
             forceOpenApp();
             window.addEventListener('scroll', forceOpenApp, { passive: true });
             document.addEventListener('touchstart', forceOpenApp, { passive: true });
@@ -68,7 +68,7 @@
             setTimeout(forceOpenApp, 400);
 
         } else {
-            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Thiếu dữ liệu cấu trúc chiến dịch target.</span>";
+            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Không thể đồng bộ cấu trúc chiến dịch target.</span>";
         }
     </script>
 </body>
