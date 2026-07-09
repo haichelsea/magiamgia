@@ -3,65 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đang chuyển hướng đến nơi mua hàng...</title>
+    <title>Đang chuyển hướng đến ứng dụng mua hàng...</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             text-align: center;
-            padding: 50px 20px;
-            background-color: #f9f9f9;
+            padding: 60px 20px;
+            background-color: #fafafa;
             color: #333;
         }
         .loader {
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #ff5722;
+            border-top: 4px solid #ee4d2d; /* Màu cam Shopee */
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            width: 45px;
+            height: 45px;
+            animation: spin 0.8s linear infinite;
+            margin: 25px auto;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .error-msg {
+            color: #ff5722;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <div class="loader"></div>
-    <h3 id="status-msg">ĐANG MỞ ỨNG DỤNG ĐẶT HÀNG...</h3>
-    <p>Vui lòng đợi trong giây lát</p>
+    <div class="loader" id="loading-icon"></div>
+    <h3 id="status-msg">ĐANG CHUYỂN HƯỚNG ĐẾN SHOPEE...</h3>
+    <p id="sub-msg">Vui lòng đợi trong giây lát để hệ thống mở ứng dụng đặt hàng.</p>
 
     <script>
-        // Hàm giải mã Hex ngược lại thành URL
-        function decodeHex(hexStr) {
+        // Hàm giải mã Base64 an toàn cho URL (URL-Safe Base64)
+        function decodeUrlSafeBase64(base64Str) {
             try {
-                let str = '';
-                for (let i = 0; i < hexStr.length; i += 2) {
-                    str += String.fromCharCode(parseInt(hexStr.substr(i, 2), 16));
+                // Thêm lại các dấu padding '=' đã bị lọc bỏ ở Python
+                let str = base64Str.replace(/-/g, '+').replace(/_/g, '/');
+                while (str.length % 4) {
+                    str += '=';
                 }
-                return str;
+                // Giải mã Base64 sang chuỗi UTF-8 chuẩn công nghệ
+                return decodeURIComponent(atob(str).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
             } catch (e) {
+                console.error("Lỗi giải mã:", e);
                 return null;
             }
         }
 
-        // Thực hiện quét Query Parameter trên URL
+        // Lấy tham số '?p=' từ URL thanh địa chỉ trình duyệt
         const urlParams = new URLSearchParams(window.location.search);
         const paramP = urlParams.get('p');
 
         if (paramP) {
-            const targetUrl = decodeHex(paramP);
+            // Giải mã tham số chuỗi tự sinh ra từ bot
+            const targetUrl = decodeUrlSafeBase64(paramP);
+            
+            // Kiểm tra cấu trúc đường dẫn đích có hợp lệ không
             if (targetUrl && targetUrl.startsWith('http')) {
-                // Chuyển hướng ngay lập tức sang link affiliate goeco để kích hoạt mở App Shopee
-                window.location.href = targetUrl;
+                // Điều hướng ngay lập tức sang link của goeco để mở app Shopee
+                window.location.replace(targetUrl);
             } else {
-                document.getElementById('status-msg').innerText = "⚠️ Đường dẫn không hợp lệ hoặc đã hết hạn.";
+                // Hiển thị lỗi nếu chuỗi bị sai cấu trúc / thiếu tham số target
+                document.getElementById('loading-icon').style.display = 'none';
+                document.getElementById('status-msg').className = 'error-msg';
+                document.getElementById('status-msg').innerText = "⚠️ LỖI: Cấu trúc đường dẫn không hợp lệ!";
+                document.getElementById('sub-msg').innerText = "Vui lòng kiểm tra lại đường link được chia sẻ từ Bot.";
             }
         } else {
-            // Fallback nếu truy cập trang chủ không có tham số
-            document.getElementById('status-msg').innerText = "Hệ thống chuyển hướng mã giảm giá.";
+            // Trường hợp người dùng vào thẳng trang chủ haichelsea.github.io/magiamgia/ mà không có tham số
+            document.getElementById('loading-icon').style.display = 'none';
+            document.getElementById('status-msg').innerText = "Chào mừng bạn đến với Cổng điều hướng mua sắm!";
+            document.getElementById('sub-msg').innerText = "Hệ thống tự động chuyển đổi link mua hàng ưu đãi.";
         }
     </script>
 </body>
