@@ -19,6 +19,7 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* Header cảnh báo TikTok/Facebook chặn link */
@@ -26,7 +27,7 @@
             background: linear-gradient(135deg, #160a2c 0%, #2e1154 100%);
             color: #fff;
             width: 100%;
-            padding: 20px 16px;
+            padding: 24px 16px;
             text-align: center;
             font-size: 14px;
             line-height: 1.5;
@@ -41,6 +42,11 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
+        }
+
+        .alert-header p {
+            color: #ccc;
+            font-size: 13px;
         }
 
         .alert-header a {
@@ -58,11 +64,11 @@
         }
 
         .btn-alert {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.12);
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2.5);
             padding: 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
@@ -70,6 +76,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
@@ -87,7 +94,7 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
             margin: -15px 16px 30px 16px;
             padding: 24px 20px;
-            z-index: 10;
+            z-index: 5;
         }
 
         /* Thông tin nhóm */
@@ -173,7 +180,7 @@
             border-radius: 12px;
             padding: 16px;
             text-align: left;
-            display: none; /* Ẩn mặc định, hiện khi bấm sao chép */
+            display: none;
         }
 
         .steps-title {
@@ -261,7 +268,168 @@
             margin-bottom: 16px;
         }
 
-        /* Toast thông báo nhanh */
+        /* STYLES CHO POPUP / BOTTOM SHEET */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ffffff;
+            border-radius: 24px 24px 0 0;
+            padding: 20px 16px 24px 16px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            text-align: center;
+            box-shadow: 0 -8px 24px rgba(0,0,0,0.15);
+        }
+
+        /* Khi hiển thị Popup */
+        .popup-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+        .bottom-sheet.show {
+            transform: translateY(0);
+        }
+
+        /* Thanh gạch nhỏ trên đầu popup giống ứng dụng native */
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin: 0 auto 16px auto;
+        }
+
+        .sheet-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #111a24;
+            margin-bottom: 8px;
+        }
+
+        .sheet-subtitle {
+            font-size: 14px;
+            color: #6c7a89;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            padding: 0 8px;
+        }
+
+        /* Các khối bước hướng dẫn của Popup */
+        .popup-step-card {
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .popup-step-img {
+            width: 70px;
+            height: 54px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Icon vẽ tạm giả lập hình vẽ trong hình mẫu */
+        .icon-mock {
+            width: 40px;
+            height: 32px;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            position: relative;
+        }
+        .icon-mock::before {
+            content: "•••";
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 10px;
+            letter-spacing: -0.5px;
+            color: #0068ff;
+        }
+
+        .popup-step-text {
+            font-size: 14px;
+            color: #334155;
+            line-height: 1.4;
+        }
+
+        .popup-step-num {
+            background: #0068ff;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .btn-sheet-secondary {
+            background: transparent;
+            color: #111;
+            border: none;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .btn-sheet-close {
+            margin-top: 12px;
+            background: #0068ff;
+            color: white;
+            width: 100%;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .sheet-footer {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 14px;
+        }
+
+        /* Toast thông báo */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -277,17 +445,20 @@
 </head>
 <body>
 
+    <!-- Khối thông báo lỗi trình duyệt của TikTok -->
     <div class="alert-header">
         <div class="alert-title">🔴 TikTok không mở được link Zalo</div>
-        <p>Đừng lo — xem <a href="#video-guide">video hướng dẫn</a> hoặc làm theo <b>từng bước</b> bên dưới.</p>
+        <p>Đừng lo — xem <b>video hướng dẫn</b> hoặc làm theo <b>từng bước</b> bên dưới.</p>
         <div class="alert-buttons">
-            <a href="#video-guide" class="btn-alert">▶ Xem video hướng dẫn</a>
-            <a href="https://zalo.me/g/1v4lj5actsix4k9j0fhg" target="_blank" class="btn-alert primary">📋 Hướng dẫn mở trình duyệt</a>
+            <button class="btn-alert" onclick="openPopup()">▶ Xem video hướng dẫn</button>
+            <button class="btn-alert primary" onclick="openPopup()">📋 Hướng dẫn mở trình duyệt</button>
         </div>
     </div>
 
+    <!-- Khung nội dung chính -->
     <div class="main-card">
         
+        <!-- Header thông tin nhóm -->
         <div class="group-info">
             <div class="group-avatar">Z</div>
             <div class="group-text">
@@ -296,10 +467,12 @@
             </div>
         </div>
 
+        <!-- CÁCH 1 -->
         <div class="method-box">
             <div class="method-title">Cách 1 · Nhanh nhất</div>
             <button class="btn-action" onclick="copyLink()">📋 Sao chép link nhóm</button>
 
+            <!-- Khung hướng dẫn tự động bật lên khi click sao chép -->
             <div class="steps-box" id="stepsBox">
                 <div class="steps-title">✓ Link đã được sao chép! Làm tiếp:</div>
                 <div class="step-item">
@@ -321,10 +494,12 @@
             </div>
         </div>
 
+        <!-- Chữ Hoặc ở giữa -->
         <div class="divider">
             <span>hoặc</span>
         </div>
 
+        <!-- CÁCH 2 -->
         <div class="method-box" style="text-align: center;">
             <div class="method-title">Cách 2 · Quét mã QR</div>
             
@@ -339,33 +514,95 @@
             <a href="https://zalo.me/g/1v4lj5actsix4k9j0fhg" target="_blank" class="btn-action">Tham gia ngay &rarr;</a>
         </div>
 
-        <div id="video-guide" style="padding-top: 10px; font-size: 12px; color: #aaa; text-align: center;">
-            Thành phần Video Hướng dẫn đặt tại đây
-        </div>
-
     </div>
 
+    <!-- POPUP BOTTOM SHEET (HƯỚNG DẪN MỞ TRÌNH DUYỆT) -->
+    <div class="popup-overlay" id="popupOverlay" onclick="closePopup()"></div>
+    <div class="bottom-sheet" id="bottomSheet">
+        <div class="sheet-handle"></div>
+        
+        <div class="sheet-title">TikTok đang chặn mở Zalo</div>
+        <div class="sheet-subtitle">Mở trang này bằng trình duyệt ngoài (Safari/Chrome) rồi bấm Tham gia lại</div>
+
+        <!-- Bước 1 -->
+        <div class="popup-step-card">
+            <div class="popup-step-img">
+                <div class="icon-mock" style="border-color: #0068ff;"></div>
+            </div>
+            <div class="popup-step-text">
+                <span class="popup-step-num">1</span><br>
+                Bấm nút <b style="color: #0068ff;">••• (ba chấm)</b> ở góc phải trên màn hình
+            </div>
+        </div>
+
+        <!-- Bước 2 -->
+        <div class="popup-step-card">
+            <div class="popup-step-img">
+                <div class="icon-mock" style="background: #e0e9ff; border-color: #0068ff;"></div>
+            </div>
+            <div class="popup-step-text">
+                <span class="popup-step-num">2</span><br>
+                Chọn <b style="color: #0068ff;">Mở bằng Safari</b> (hoặc Trình duyệt ngoài)
+            </div>
+        </div>
+
+        <!-- Bước 3 -->
+        <div class="popup-step-card">
+            <div class="popup-step-img">
+                <div class="icon-mock" style="display: flex; align-items: center; justify-content: center; font-size: 14px; color: #2ec4b6;">✓</div>
+            </div>
+            <div class="popup-step-text">
+                <span class="popup-step-num">3</span><br>
+                Trang mở trong <b style="color: #0068ff;">Safari</b> — bấm <b style="color: #0068ff;">Tham gia ngay</b> lần nữa
+            </div>
+        </div>
+
+        <!-- Các nút chức năng dưới popup -->
+        <button class="btn-sheet-secondary" style="width: 100%;">▶ Xem video hướng dẫn</button>
+        <button class="btn-sheet-close" onclick="closePopup()">Đã hiểu</button>
+
+        <div class="sheet-footer">
+            Sau khi mở bằng Safari/Chrome, quay lại bấm <b>Tham gia ngay</b>
+        </div>
+    </div>
+
+    <!-- Toast thông báo nhỏ -->
     <div class="toast" id="toast">Đã sao chép liên kết!</div>
 
     <script>
         function copyLink() {
             const linkGroup = "https://zalo.me/g/1v4lj5actsix4k9j0fhg";
-            
-            // Xử lý sao chép vào bộ nhớ đệm
             navigator.clipboard.writeText(linkGroup).then(() => {
-                // Hiện khung hướng dẫn 4 bước
                 document.getElementById('stepsBox').style.display = 'block';
-                
-                // Hiện thông báo toast nhanh trong 2 giây
                 const toast = document.getElementById('toast');
                 toast.style.display = 'block';
-                setTimeout(() => {
-                    toast.style.display = 'none';
-                }, 2000);
+                setTimeout(() => { toast.style.display = 'none'; }, 2000);
             }).catch(err => {
-                // Phương án dự phòng nếu trình duyệt chặn tự động sao chép
                 alert("Hãy copy link này: " + linkGroup);
             });
+        }
+
+        // JS điều khiển đóng/mở Popup trượt lên mượt mà
+        function openPopup() {
+            const overlay = document.getElementById('popupOverlay');
+            const sheet = document.getElementById('bottomSheet');
+            
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                overlay.classList.add('show');
+                sheet.classList.add('show');
+            }, 10);
+        }
+
+        function closePopup() {
+            const overlay = document.getElementById('popupOverlay');
+            const sheet = document.getElementById('bottomSheet');
+            
+            overlay.classList.remove('show');
+            sheet.classList.remove('show');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
         }
     </script>
 </body>
