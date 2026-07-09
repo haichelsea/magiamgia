@@ -3,103 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kích Hoạt Ưu Đãi Đặc Quyền</title>
+    <title>Đang chuyển hướng đến nơi mua hàng...</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; text-align: center; color: #333; }
-        .loading-box { padding: 40px 20px; background: white; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .orange-text { color: #ee4d2d; font-weight: bold; }
-        .instruction-card { background: #fff3f0; border: 1px dashed #ee4d2d; padding: 15px; margin: 15px; border-radius: 6px; font-size: 15px; line-height: 1.5; }
-        .btn-open-app { display: inline-block; margin: 20px auto; padding: 16px 30px; font-size: 16px; font-weight: bold; color: white; background-color: #ee4d2d; border: none; border-radius: 25px; cursor: pointer; text-decoration: none; box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4); }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff5722;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
 
-    <div class="loading-box">
-        <h3 class="orange-text">🔄 ĐANG ĐỒNG BỘ CHIẾN DỊCH VOUCHER...</h3>
-        <p id="status-text">Đang đồng bộ cấu trúc mã hóa Facebook VIP...</p>
-    </div>
-
-    <button class="btn-open-app" id="fallback-btn" onclick="forceOpenApp()">
-        🛍️ BẤM VÀO ĐÂY ĐỂ MỞ SẢN PHẨM TRÊN APP
-    </button>
+    <div class="loader"></div>
+    <h3 id="status-msg">ĐANG MỞ ỨNG DỤNG ĐẶT HÀNG...</h3>
+    <p>Vui lòng đợi trong giây lát</p>
 
     <script>
-        let finalRedirectUrl = "";
-
-        function getQueryParamAdvanced(param) {
-            const url = window.location.href;
-            const regex = new RegExp('[?&]' + param + '=([^&#]*)', 'i');
-            const string = regex.exec(url);
-            return string ? decodeURIComponent(string[1]) : null;
+        // Hàm giải mã Hex ngược lại thành URL
+        function decodeHex(hexStr) {
+            try {
+                let str = '';
+                for (let i = 0; i < hexStr.length; i += 2) {
+                    str += String.fromCharCode(parseInt(hexStr.substr(i, 2), 16));
+                }
+                return str;
+            } catch (e) {
+                return null;
+            }
         }
 
-        // Nhận liên kết target chứa cụm tham số từ Bot gửi sang
-        const targetUrl = getQueryParamAdvanced('target');
+        // Thực hiện quét Query Parameter trên URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramP = urlParams.get('p');
 
-        if (targetUrl) {
-            const cleanTarget = targetUrl.trim();
-            
-            // Lấy toàn bộ chuỗi tham số Facebook từ link của Bot
-            let queryString = cleanTarget.split("?")[1] || "";
-            
-            let shopId = "1113586002"; // ID tự động cập nhật nếu khớp regex, ngược lại giữ ID từ link test của bạn
-            let itemId = "46407569022";
-
-            // Kiểm tra xem link mục tiêu là link ngắn hay link dài
-            let isShortLink = cleanTarget.includes("shp.ee") || cleanTarget.includes("shope.ee");
-
-            if (isShortLink) {
-                // LUỒNG 1: XỬ LÝ LINK NGẮN VÀ ÉP CHUYỂN ĐỔI SANG PATH CỦA LINK DÀI
-                // Tách lấy mã băm (ví dụ từ vn.shp.ee/L6jvjajk lấy ra L6jvjajk)
-                let cleanPath = cleanTarget.split("?")[0];
-                let urlParts = cleanPath.split("/");
-                let shortCode = urlParts[urlParts.length - 1] || urlParts[urlParts.length - 2];
-                
-                // Thay vì thả link ngắn cho App tự giải mã lỗi, ta bọc mã ngắn vào cổng universal chuyên dụng của Shopee
-                // Cấu trúc này ép App mở thẳng giao diện sản phẩm gốc mà không làm biến đổi query string
-                finalRedirectUrl = "https://shopee.vn/universal-link/opaanlp/shorturl/" + shortCode + "/?" + queryString;
+        if (paramP) {
+            const targetUrl = decodeHex(paramP);
+            if (targetUrl && targetUrl.startsWith('http')) {
+                // Chuyển hướng ngay lập tức sang link affiliate goeco để kích hoạt mở App Shopee
+                window.location.href = targetUrl;
             } else {
-                // LUỒNG 2: XỬ LÝ LINK DÀI
-                const regexProduct = /\/product\/(\d+)\/(\d+)/;
-                const regexDashI = /-i\.(\d+)\.(\d+)/;
-                let match = cleanTarget.match(regexProduct) || cleanTarget.match(regexDashI);
-                
-                if (match && match[1] && match[2]) {
-                    shopId = match[1];
-                    itemId = match[2];
-                }
-                finalRedirectUrl = "https://shopee.vn/universal-link/opaanlp/" + shopId + "/" + itemId + "/?" + queryString;
+                document.getElementById('status-msg').innerText = "⚠️ Đường dẫn không hợp lệ hoặc đã hết hạn.";
             }
-
-            // CẤU HÌNH GIAO THỨC INTENT BẮT BUỘC CHO ANDROID ĐỂ GIỮ NGUYÊN THANH ĐỊA CHỈ
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            if (isAndroid) {
-                let intentPath = finalRedirectUrl
-                    .replace("https://shopee.vn/", "")
-                    .replace("https://s.shopee.vn/", "")
-                    .replace("https://shope.ee/", "")
-                    .replace("https://vn.shp.ee/", "");
-                
-                finalRedirectUrl = "intent://shopee.vn/" + intentPath + "#Intent;scheme=https;package=com.shopee.vn;end;";
-            }
-
-            document.getElementById("status-text").innerText = "🎉 Cấu trúc Facebook chuẩn xác! Đang vào App...";
-
-            function forceOpenApp() {
-                if (finalRedirectUrl) {
-                    window.location.href = finalRedirectUrl;
-                }
-            }
-            window.forceOpenApp = forceOpenApp;
-
-            forceOpenApp();
-            window.addEventListener('scroll', forceOpenApp, { passive: true });
-            document.addEventListener('touchstart', forceOpenApp, { passive: true });
-            document.addEventListener('click', forceOpenApp);
-            setTimeout(forceOpenApp, 400);
-
         } else {
-            document.getElementById("status-text").innerHTML = "<span style='color:red;'>❌ Lỗi: Cấu trúc đường dẫn thiếu tham số target.</span>";
+            // Fallback nếu truy cập trang chủ không có tham số
+            document.getElementById('status-msg').innerText = "Hệ thống chuyển hướng mã giảm giá.";
         }
     </script>
 </body>
