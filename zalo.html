@@ -1,4 +1,4 @@
-html_code = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -165,34 +165,78 @@ html_code = """<!DOCTYPE html>
             border: none;
             padding: 14px;
             border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
+            font-size: 16px; /* Tăng nhẹ font chữ cho nút chính nổi bật hơn */
+            font-weight: 800;
             cursor: pointer;
             text-decoration: none;
             box-shadow: 0 4px 12px rgba(0, 104, 255, 0.2);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Hiệu ứng nhấp nháy thu hút sự chú ý cực mạnh cho nút Tham Gia Ngay */
-        @keyframes pulse-shimmer {
+        /* HIỆU ỨNG NHẤP NHÁY NHANH & MẠNH HƠN (PULSE CO GIẬT MẠNH + SHIMMER QUÉT LIÊN TỤC) */
+        @keyframes pulse-aggressive {
             0% {
                 transform: scale(1);
-                box-shadow: 0 4px 12px rgba(0, 104, 255, 0.3), 0 0 0 0px rgba(0, 104, 255, 0.5);
+                box-shadow: 0 0 0 0 rgba(0, 104, 255, 0.8), 0 4px 12px rgba(0, 104, 255, 0.3);
+                filter: brightness(1);
+            }
+            30% {
+                transform: scale(1.07); /* Phóng to đột ngột */
+                box-shadow: 0 0 0 16px rgba(0, 104, 255, 0), 0 8px 24px rgba(0, 104, 255, 0.6);
+                filter: brightness(1.25); /* Tăng độ sáng bùng nổ */
             }
             50% {
-                transform: scale(1.03);
-                box-shadow: 0 6px 16px rgba(0, 104, 255, 0.4), 0 0 0 10px rgba(0, 104, 255, 0);
+                transform: scale(0.97); /* Co nhẹ lại tạo nhịp co bóp giật */
+                box-shadow: 0 0 0 0 rgba(0, 104, 255, 0), 0 2px 6px rgba(0, 104, 255, 0.2);
+                filter: brightness(0.95);
+            }
+            75% {
+                transform: scale(1.04); /* Nảy nhẹ lần 2 */
+                box-shadow: 0 0 0 8px rgba(0, 104, 255, 0), 0 6px 16px rgba(0, 104, 255, 0.4);
+                filter: brightness(1.1);
             }
             100% {
                 transform: scale(1);
-                box-shadow: 0 4px 12px rgba(0, 104, 255, 0.3), 0 0 0 0px rgba(0, 104, 255, 0);
+                box-shadow: 0 0 0 0 rgba(0, 104, 255, 0), 0 4px 12px rgba(0, 104, 255, 0.3);
+                filter: brightness(1);
+            }
+        }
+
+        /* Ánh sáng quét xéo cực nhanh qua nút */
+        @keyframes shimmer-fast {
+            0% {
+                left: -150%;
+            }
+            50% {
+                left: 150%;
+            }
+            100% {
+                left: 150%;
             }
         }
 
         .btn-action.pulsing {
-            animation: pulse-shimmer 1.8s infinite ease-in-out;
-            background: linear-gradient(90deg, #0068ff, #0056d6, #0068ff);
-            background-size: 200% auto;
+            animation: pulse-aggressive 1.1s infinite cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: linear-gradient(135deg, #0056d6 0%, #0068ff 50%, #003ebd 100%);
+        }
+
+        /* Lớp giả lập ánh sáng quét */
+        .btn-action.pulsing::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -150%;
+            width: 150%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(25deg);
+            animation: shimmer-fast 1.1s infinite linear;
         }
 
         /* Khung hướng dẫn từng bước khi bấm sao chép */
@@ -468,6 +512,7 @@ html_code = """<!DOCTYPE html>
 </head>
 <body>
 
+    <!-- Khối thông báo lỗi trình duyệt của TikTok -->
     <div class="alert-header">
         <div class="alert-title">🔴 TikTok không mở được link Zalo</div>
         <p>Đừng lo — xem <b>video hướng dẫn</b> hoặc làm theo <b>từng bước</b> bên dưới.</p>
@@ -477,8 +522,10 @@ html_code = """<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- Khung nội dung chính -->
     <div class="main-card">
         
+        <!-- Header thông tin nhóm -->
         <div class="group-info">
             <div class="group-avatar">Z</div>
             <div class="group-text">
@@ -487,6 +534,7 @@ html_code = """<!DOCTYPE html>
             </div>
         </div>
 
+        <!-- CÁCH 1: THAM GIA NGAY (Đã tăng cường độ nhấp nháy giật mạnh & vệt sáng) -->
         <div class="method-box" style="text-align: center;">
             <div class="method-title">Cách 1 · Nhanh nhất</div>
             <a href="https://zalo.me/g/1v4lj5actsix4k9j0fhg" target="_blank" class="btn-action pulsing">Tham gia ngay &rarr;</a>
@@ -495,14 +543,17 @@ html_code = """<!DOCTYPE html>
             </div>
         </div>
 
+        <!-- Chữ Hoặc -->
         <div class="divider">
             <span>hoặc</span>
         </div>
 
+        <!-- CÁCH 2: SAO CHÉP LINK NHÓM -->
         <div class="method-box">
             <div class="method-title">Cách 2 · Sao chép liên kết</div>
             <button class="btn-action" onclick="copyLink()">📋 Sao chép link nhóm</button>
 
+            <!-- Khung hướng dẫn tự động bật lên khi click sao chép -->
             <div class="steps-box" id="stepsBox">
                 <div class="steps-title">✓ Link đã được sao chép! Làm tiếp:</div>
                 <div class="step-item">
@@ -524,10 +575,12 @@ html_code = """<!DOCTYPE html>
             </div>
         </div>
 
+        <!-- Chữ Hoặc -->
         <div class="divider">
             <span>hoặc</span>
         </div>
 
+        <!-- CÁCH 3: QUÉT MÃ QR -->
         <div class="method-box" style="text-align: center; margin-bottom: 0;">
             <div class="method-title">Cách 3 · Quét mã QR</div>
             
@@ -542,6 +595,7 @@ html_code = """<!DOCTYPE html>
 
     </div>
 
+    <!-- POPUP BOTTOM SHEET (HƯỚNG DẪN MỞ TRÌNH DUYỆT) -->
     <div class="popup-overlay" id="popupOverlay" onclick="closePopup()"></div>
     <div class="bottom-sheet" id="bottomSheet">
         <div class="sheet-handle"></div>
@@ -549,6 +603,7 @@ html_code = """<!DOCTYPE html>
         <div class="sheet-title">TikTok đang chặn mở Zalo</div>
         <div class="sheet-subtitle">Mở trang này bằng trình duyệt ngoài (Safari/Chrome) rồi bấm Tham gia lại</div>
 
+        <!-- Bước 1 -->
         <div class="popup-step-card">
             <div class="popup-step-img">
                 <div class="icon-mock" style="border-color: #0068ff;"></div>
@@ -559,6 +614,7 @@ html_code = """<!DOCTYPE html>
             </div>
         </div>
 
+        <!-- Bước 2 -->
         <div class="popup-step-card">
             <div class="popup-step-img">
                 <div class="icon-mock" style="background: #e0e9ff; border-color: #0068ff;"></div>
@@ -569,6 +625,7 @@ html_code = """<!DOCTYPE html>
             </div>
         </div>
 
+        <!-- Bước 3 -->
         <div class="popup-step-card">
             <div class="popup-step-img">
                 <div class="icon-mock" style="display: flex; align-items: center; justify-content: center; font-size: 14px; color: #2ec4b6;">✓</div>
@@ -579,6 +636,7 @@ html_code = """<!DOCTYPE html>
             </div>
         </div>
 
+        <!-- Các nút chức năng dưới popup -->
         <button class="btn-sheet-secondary" style="width: 100%;">▶ Xem video hướng dẫn</button>
         <button class="btn-sheet-close" onclick="closePopup()">Đã hiểu</button>
 
@@ -587,6 +645,7 @@ html_code = """<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- Toast thông báo nhỏ -->
     <div class="toast" id="toast">Đã sao chép liên kết!</div>
 
     <script>
@@ -626,8 +685,4 @@ html_code = """<!DOCTYPE html>
         }
     </script>
 </body>
-</html>"""
-
-with open("zalo_final_v2.html", "w", encoding="utf-8") as f:
-    f.write(html_code)
-print("Updated successfully.")
+</html>
