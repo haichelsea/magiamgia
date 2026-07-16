@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html_code = """<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -66,7 +66,7 @@
         .btn-alert {
             background: rgba(255, 255, 255, 0.12);
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2.5);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             padding: 12px;
             border-radius: 12px;
             text-decoration: none;
@@ -170,6 +170,29 @@
             cursor: pointer;
             text-decoration: none;
             box-shadow: 0 4px 12px rgba(0, 104, 255, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* Hiệu ứng nhấp nháy thu hút sự chú ý cực mạnh cho nút Tham Gia Ngay */
+        @keyframes pulse-shimmer {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(0, 104, 255, 0.3), 0 0 0 0px rgba(0, 104, 255, 0.5);
+            }
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 6px 16px rgba(0, 104, 255, 0.4), 0 0 0 10px rgba(0, 104, 255, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(0, 104, 255, 0.3), 0 0 0 0px rgba(0, 104, 255, 0);
+            }
+        }
+
+        .btn-action.pulsing {
+            animation: pulse-shimmer 1.8s infinite ease-in-out;
+            background: linear-gradient(90deg, #0068ff, #0056d6, #0068ff);
+            background-size: 200% auto;
         }
 
         /* Khung hướng dẫn từng bước khi bấm sao chép */
@@ -445,7 +468,6 @@
 </head>
 <body>
 
-    <!-- Khối thông báo lỗi trình duyệt của TikTok -->
     <div class="alert-header">
         <div class="alert-title">🔴 TikTok không mở được link Zalo</div>
         <p>Đừng lo — xem <b>video hướng dẫn</b> hoặc làm theo <b>từng bước</b> bên dưới.</p>
@@ -455,24 +477,32 @@
         </div>
     </div>
 
-    <!-- Khung nội dung chính -->
     <div class="main-card">
         
-        <!-- Header thông tin nhóm -->
         <div class="group-info">
             <div class="group-avatar">Z</div>
             <div class="group-text">
-                <h2>[08] GẮN MÃ SHOPEE 22 - 25% SIÊU TỐC</h2>
+                <h2>GẮN MÃ SHOPEE 22 - 25% SIÊU TỐC</h2>
                 <p>Nhóm gắn mã giảm giá toàn sàn Shopee</p>
             </div>
         </div>
 
-        <!-- CÁCH 1 -->
-        <div class="method-box">
+        <div class="method-box" style="text-align: center;">
             <div class="method-title">Cách 1 · Nhanh nhất</div>
+            <a href="https://zalo.me/g/1v4lj5actsix4k9j0fhg" target="_blank" class="btn-action pulsing">Tham gia ngay &rarr;</a>
+            <div class="qr-instruction" style="margin-top: 12px; margin-bottom: 0; font-size: 12px; color: #777;">
+                Bấm trực tiếp để tự động mở ứng dụng Zalo và tham gia nhóm nhanh chóng
+            </div>
+        </div>
+
+        <div class="divider">
+            <span>hoặc</span>
+        </div>
+
+        <div class="method-box">
+            <div class="method-title">Cách 2 · Sao chép liên kết</div>
             <button class="btn-action" onclick="copyLink()">📋 Sao chép link nhóm</button>
 
-            <!-- Khung hướng dẫn tự động bật lên khi click sao chép -->
             <div class="steps-box" id="stepsBox">
                 <div class="steps-title">✓ Link đã được sao chép! Làm tiếp:</div>
                 <div class="step-item">
@@ -494,29 +524,24 @@
             </div>
         </div>
 
-        <!-- Chữ Hoặc ở giữa -->
         <div class="divider">
             <span>hoặc</span>
         </div>
 
-        <!-- CÁCH 2 -->
-        <div class="method-box" style="text-align: center;">
-            <div class="method-title">Cách 2 · Quét mã QR</div>
+        <div class="method-box" style="text-align: center; margin-bottom: 0;">
+            <div class="method-title">Cách 3 · Quét mã QR</div>
             
             <div class="qr-container">
                 <img src="qr_code.png" alt="Mã QR Zalo" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://zalo.me/g/1v4lj5actsix4k9j0fhg'">
             </div>
 
-            <div class="qr-instruction">
+            <div class="qr-instruction" style="margin-bottom: 0;">
                 Mở <b>Camera</b> điện thoại &rarr; quét mã QR &rarr; tự mở Zalo &rarr; bấm <b>Tham gia nhóm</b>
             </div>
-
-            <a href="https://zalo.me/g/1v4lj5actsix4k9j0fhg" target="_blank" class="btn-action">Tham gia ngay &rarr;</a>
         </div>
 
     </div>
 
-    <!-- POPUP BOTTOM SHEET (HƯỚNG DẪN MỞ TRÌNH DUYỆT) -->
     <div class="popup-overlay" id="popupOverlay" onclick="closePopup()"></div>
     <div class="bottom-sheet" id="bottomSheet">
         <div class="sheet-handle"></div>
@@ -524,7 +549,6 @@
         <div class="sheet-title">TikTok đang chặn mở Zalo</div>
         <div class="sheet-subtitle">Mở trang này bằng trình duyệt ngoài (Safari/Chrome) rồi bấm Tham gia lại</div>
 
-        <!-- Bước 1 -->
         <div class="popup-step-card">
             <div class="popup-step-img">
                 <div class="icon-mock" style="border-color: #0068ff;"></div>
@@ -535,7 +559,6 @@
             </div>
         </div>
 
-        <!-- Bước 2 -->
         <div class="popup-step-card">
             <div class="popup-step-img">
                 <div class="icon-mock" style="background: #e0e9ff; border-color: #0068ff;"></div>
@@ -546,7 +569,6 @@
             </div>
         </div>
 
-        <!-- Bước 3 -->
         <div class="popup-step-card">
             <div class="popup-step-img">
                 <div class="icon-mock" style="display: flex; align-items: center; justify-content: center; font-size: 14px; color: #2ec4b6;">✓</div>
@@ -557,7 +579,6 @@
             </div>
         </div>
 
-        <!-- Các nút chức năng dưới popup -->
         <button class="btn-sheet-secondary" style="width: 100%;">▶ Xem video hướng dẫn</button>
         <button class="btn-sheet-close" onclick="closePopup()">Đã hiểu</button>
 
@@ -566,7 +587,6 @@
         </div>
     </div>
 
-    <!-- Toast thông báo nhỏ -->
     <div class="toast" id="toast">Đã sao chép liên kết!</div>
 
     <script>
@@ -606,4 +626,8 @@
         }
     </script>
 </body>
-</html>
+</html>"""
+
+with open("zalo_final_v2.html", "w", encoding="utf-8") as f:
+    f.write(html_code)
+print("Updated successfully.")
