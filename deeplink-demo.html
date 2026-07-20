@@ -180,12 +180,12 @@
     <div class="app-row">
       <div class="app-icon">S</div>
       <div>
-        <div class="app-name">Mở trong ứng dụng Shopee</div>
-        <div class="app-desc">Trải nghiệm nhanh và đầy đủ hơn</div>
+        <div class="app-name">Xem sản phẩm trong app Shopee</div>
+        <div class="app-desc">shopee.vn/product/455473927/54055621563</div>
       </div>
     </div>
-    <button class="open-app" id="openBtn">Mở ứng dụng Shopee</button>
-    <div class="hint">Nếu chưa cài app, không có gì xảy ra — và trang vẫn ở đây.</div>
+    <button class="open-app" id="openBtn">Mở trong ứng dụng Shopee</button>
+    <div class="hint">Nếu chưa cài app hoặc scheme không khớp phiên bản app, sẽ tự chuyển sang trang sản phẩm trên trình duyệt sau ít giây.</div>
   </div>
 
   <div class="log-panel">
@@ -260,22 +260,35 @@
     };
     document.addEventListener('visibilitychange', visHandler, { once: true });
 
-    // Fallback: nếu sau 1.2s vẫn ở trang (không có app), có thể điều hướng
-    // sang store — nhưng đây LÀ lựa chọn chủ động của bạn, không phải bug.
+    // Fallback: nếu sau 1.5s vẫn còn ở trang này (nghĩa là app không mở lên —
+    // chưa cài app, hoặc scheme không khớp phiên bản), chủ động điều hướng
+    // sang trang sản phẩm trên trình duyệt. Đây là điều hướng CÓ CHỦ ĐÍCH,
+    // xảy ra sau khi đã thử mở app, không phải trang tự ý bỏ qua nút bấm.
     setTimeout(() => {
       if (!document.hidden) {
-        log('Không phát hiện app mở lên. (Ở đây demo không điều hướng sang store để bạn thấy trang vẫn còn.)');
+        log('Không phát hiện app mở lên trong 1.5s → chuyển sang trang sản phẩm trên trình duyệt.', 'warn');
+        window.location.href = fallbackStoreUrl;
       }
-    }, 1200);
+    }, 1500);
   }
+
+  // Link sản phẩm thật bạn muốn mở trong app Shopee
+  const PRODUCT_URL = 'https://shopee.vn/product/455473927/54055621563';
+  const encodedUrl = encodeURIComponent(PRODUCT_URL);
+
+  // shopeevn:// là URI scheme chính thức Shopee VN dùng cho deeplink quảng cáo/affiliate.
+  // reactPath + path=shopee/TRANSFER_PAGE + navigate_url là cấu trúc Shopee công bố
+  // để mở thẳng một link sản phẩm cụ thể bên trong app.
+  const shopeeScheme = `shopeevn://reactPath?smtt=9&path=shopee/TRANSFER_PAGE&navigate_url="${encodedUrl}"&tab=buy`;
+
+  // Trên Android, gói app Shopee VN là com.shopee.vn — intent:// cho phép trình duyệt
+  // fallback về Play Store nếu app chưa cài, mà không điều hướng trang hiện tại.
+  const intentUrl = `intent://reactPath?smtt=9&path=shopee/TRANSFER_PAGE&navigate_url="${encodedUrl}"&tab=buy#Intent;scheme=shopeevn;package=com.shopee.vn;S.browser_fallback_url=${encodeURIComponent(PRODUCT_URL)};end`;
 
   document.getElementById('openBtn').addEventListener('click', function (e) {
     e.preventDefault(); // chặn hành vi mặc định nếu nút từng là thẻ <a href>
-    openAppWithoutNavigating(
-      'shopee://',
-      'intent://#Intent;scheme=shopee;package=com.shopee.vn;end',
-      'https://shopee.vn/'
-    );
+    log(`Link sản phẩm: ${PRODUCT_URL}`);
+    openAppWithoutNavigating(shopeeScheme, intentUrl, PRODUCT_URL);
   });
 </script>
 </body>
