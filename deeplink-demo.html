@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo: Mở app mà không rời trang</title>
+<style>
+  :root {
+    --bg: #fff5eb;
+    --card: #ffffff;
+    --ink: #1f1a17;
+    --ink-soft: #6b625c;
+    --accent: #ee4d2d; /* sắc cam đặc trưng của Shopee, dùng làm điểm nhấn duy nhất */
+    --accent-soft: #ffe4d9;
+    --line: #f0e3d6;
+    --ok: #1a7f4e;
+    --font-display: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--font-display);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 20px 60px;
+  }
+
+  .badge {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin: 0 0 6px;
+    text-align: center;
+  }
+
+  .sub {
+    color: var(--ink-soft);
+    font-size: 14px;
+    text-align: center;
+    max-width: 340px;
+    margin: 0 0 28px;
+    line-height: 1.5;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .app-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .app-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .app-name { font-weight: 600; font-size: 15px; }
+  .app-desc { font-size: 12.5px; color: var(--ink-soft); }
+
+  button.open-app {
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+
+  button.open-app:active { transform: scale(0.98); background: #d43f22; }
+
+  .hint {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .log-panel {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 20px;
+  }
+
+  .log-title {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .log-title button {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 11px;
+    cursor: pointer;
+    text-transform: none;
+    letter-spacing: 0;
+    padding: 0;
+  }
+
+  .log-box {
+    background: var(--ink);
+    border-radius: 10px;
+    padding: 12px 14px;
+    min-height: 90px;
+    max-height: 220px;
+    overflow-y: auto;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .log-line { color: #d9d2ca; }
+  .log-line .t { color: #7a726a; margin-right: 6px; }
+  .log-line.ok { color: #6cd39a; }
+  .log-line.warn { color: #f2b45b; }
+
+  .proof {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--accent-soft);
+    border-radius: 10px;
+    font-size: 12.5px;
+    color: #8a3319;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+</style>
+</head>
+<body>
+
+  <div class="badge">Trang đệm — demo kỹ thuật</div>
+  <h1>Trang này sẽ không biến mất</h1>
+  <p class="sub">Bấm nút bên dưới để thử mở app Shopee bằng deep link.
+  Theo dõi ô nhật ký: trang web vẫn còn nguyên, không bị chuyển hướng theo link.</p>
+
+  <div class="card">
+    <div class="app-row">
+      <div class="app-icon">S</div>
+      <div>
+        <div class="app-name">Mở trong ứng dụng Shopee</div>
+        <div class="app-desc">Trải nghiệm nhanh và đầy đủ hơn</div>
+      </div>
+    </div>
+    <button class="open-app" id="openBtn">Mở ứng dụng Shopee</button>
+    <div class="hint">Nếu chưa cài app, không có gì xảy ra — và trang vẫn ở đây.</div>
+  </div>
+
+  <div class="log-panel">
+    <div class="log-title">
+      Nhật ký sự kiện
+      <button id="clearLog">Xoá</button>
+    </div>
+    <div class="log-box" id="logBox"></div>
+  </div>
+
+  <div class="proof" id="proofNote" style="display:none;">
+    ✅ <span>Đồng hồ vẫn chạy và trang chưa reload lần nào kể từ lúc mở — chứng minh không có điều hướng xảy ra.</span>
+  </div>
+
+<script>
+  const logBox = document.getElementById('logBox');
+  const pageLoadTime = Date.now();
+
+  function log(msg, cls = '') {
+    const line = document.createElement('div');
+    line.className = 'log-line ' + cls;
+    const t = ((Date.now() - pageLoadTime) / 1000).toFixed(2);
+    line.innerHTML = `<span class="t">+${t}s</span>${msg}`;
+    logBox.appendChild(line);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  log('Trang đã tải xong. Đồng hồ bắt đầu chạy.', 'ok');
+
+  document.getElementById('clearLog').onclick = () => { logBox.innerHTML = ''; };
+
+  document.getElementById('proofNote').style.display = 'flex';
+
+  // --- Kỹ thuật chính: mở app bằng thẻ <a> ẩn / iframe ẩn, KHÔNG dùng window.location ---
+  function openAppWithoutNavigating(scheme, intentUrl, fallbackStoreUrl) {
+    log('Đã bấm nút → gọi deep link (không dùng window.location.href).');
+
+    const ua = navigator.userAgent;
+    const isAndroid = /Android/i.test(ua);
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+    if (isAndroid) {
+      // Android: dùng thẻ <a> ẩn trỏ tới intent:// — click bằng JS thay vì
+      // gán window.location, nên tab/trang hiện tại không bị điều hướng.
+      const a = document.createElement('a');
+      a.href = intentUrl;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      log('Android: đã click thẻ &lt;a&gt; ẩn với intent://', 'warn');
+    } else if (isIOS) {
+      // iOS: custom scheme qua iframe ẩn không làm mất trang webview hiện tại.
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = scheme;
+      document.body.appendChild(iframe);
+      setTimeout(() => iframe.remove(), 1000);
+      log('iOS: đã gọi scheme qua iframe ẩn.', 'warn');
+    } else {
+      log('Máy tính / trình duyệt không hỗ trợ app di động → bỏ qua deep link.', 'warn');
+    }
+
+    // Theo dõi việc tab có bị ẩn đi (nghĩa là app thật sự mở lên) hay không —
+    // đây chỉ để LOG thông tin, không dùng để điều hướng trang.
+    const visHandler = () => {
+      if (document.hidden) {
+        log('Trình duyệt bị ẩn — có vẻ app đã mở lên (bình thường).', 'ok');
+      } else {
+        log('Quay lại trang — trang vẫn y nguyên, không hề reload.', 'ok');
+      }
+    };
+    document.addEventListener('visibilitychange', visHandler, { once: true });
+
+    // Fallback: nếu sau 1.2s vẫn ở trang (không có app), có thể điều hướng
+    // sang store — nhưng đây LÀ lựa chọn chủ động của bạn, không phải bug.
+    setTimeout(() => {
+      if (!document.hidden) {
+        log('Không phát hiện app mở lên. (Ở đây demo không điều hướng sang store để bạn thấy trang vẫn còn.)');
+      }
+    }, 1200);
+  }
+
+  document.getElementById('openBtn').addEventListener('click', function (e) {
+    e.preventDefault(); // chặn hành vi mặc định nếu nút từng là thẻ <a href>
+    openAppWithoutNavigating(
+      'shopee://',
+      'intent://#Intent;scheme=shopee;package=com.shopee.vn;end',
+      'https://shopee.vn/'
+    );
+  });
+</script>
+</body>
+</html>
