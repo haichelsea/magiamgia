@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang chuyển hướng đến nhóm Zalo...</title>
+    
+    <meta http-equiv="refresh" content="1;url=https://zalo.me/g/1v4lj5actsix4k9j0fhg">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 400px;
+            width: 90%;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border-left-color: #0068ff;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .btn-zalo {
+            display: inline-block;
+            background-color: #0068ff;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+        .btn-zalo:hover {
+            background-color: #0056d2;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="spinner"></div>
+    <h2>Đang chuyển hướng đến Zalo</h2>
+    <p>Vui lòng chờ trong giây lát hoặc bấm vào nút bên dưới nếu không thấy tự động chuyển hướng.</p>
+    
+    <a href="https://zalo.me/g/1v4lj5actsix4k9j0fhg" id="zaloLink" class="btn-zalo">Tham gia nhóm ngay</a>
+</div>
+
+<script>
+    // Cấu hình Link nhóm Zalo của bạn ở đây
+    const targetUrl = "https://zalo.me/g/1v4lj5actsix4k9j0fhg";
+
+    // Cập nhật lại link cho các thẻ dự phòng
+    document.getElementById("zaloLink").href = targetUrl;
+
+    // Thực hiện chuyển hướng trực tiếp bằng Javascript ngay khi load trang
+    window.location.href = targetUrl;
+</script>
+
+</body>
+</html>
