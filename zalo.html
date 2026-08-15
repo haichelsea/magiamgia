@@ -109,12 +109,22 @@
     line-height:1.5;
   }
 
-  /* steps box - always visible */
+  /* steps box - hidden until link is copied */
   .steps-box{
     text-align:left;
     border:1px solid var(--border);
     background:var(--cream);
     border-radius:16px;
+    padding:18px 18px 6px;
+    margin-bottom:0;
+    max-height:0;
+    opacity:0;
+    overflow:hidden;
+    transition:max-height .45s ease, opacity .35s ease, padding .45s ease, margin .45s ease;
+  }
+  .steps-box.show{
+    max-height:400px;
+    opacity:1;
     padding:18px 18px 16px;
     margin-bottom:26px;
   }
@@ -206,7 +216,7 @@
     </button>
     <p class="copy-hint">Nhấn để copy link, sau đó dán vào Safari / Chrome nếu QR không quét được</p>
 
-    <div class="steps-box">
+    <div class="steps-box" id="stepsBox">
       <div class="steps-title">✓ Link đã được sao chép! Làm tiếp:</div>
       <div class="step"><span class="step-num">1</span><span>Thoát TikTok <i>(bấm ← hoặc vuốt về Home)</i></span></div>
       <div class="step"><span class="step-num">2</span><span>Mở <b>Safari</b></span></div>
@@ -228,8 +238,10 @@
 function copyLink(){
   const link = "https://zalo.me/g/f4nyebmu5xltmkaggqx3";
   const label = document.getElementById('copyLabel');
+  const box = document.getElementById('stepsBox');
   const finish = () => {
     label.textContent = "✓ Đã sao chép link!";
+    box.classList.add('show');
     setTimeout(() => { label.textContent = "Sao chép link nhóm"; }, 2500);
   };
   if(navigator.clipboard && navigator.clipboard.writeText){
